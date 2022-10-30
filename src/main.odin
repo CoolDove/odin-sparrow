@@ -6,24 +6,42 @@ import "core:strings"
 import "core:unicode/utf8"
 
 main :: proc () {
-	fmt.println("source:");
+	sparrow();
+}
+
+print_label :: proc(label : string) {
+	fmt.printf("\n%s:\n-----------------\n", label);
+}
+
+sparrow :: proc() {
+	print_label("Source");
 	fmt.println(test_source);
-	fmt.println("-----------------");
-	fmt.println("");
 
-	tree : Tree;
 	parser := parser_make(test_source);
-	parser_parse(parser, &tree);
+	defer parser_release(parser);
 
-    for tok in parser.tokens {
-		fmt.println("token: ", tok);
+	tokenize(parser);
+
+	print_label("Tokens");
+	show_tokens(parser);
+
+	print_label("Abstract Syntax Tree");
+	tree, result := parse(parser);
+	if result.type == .Good {
+	    show_tree(tree);
+	} else {
+		fmt.println("failed to parse");
 	}
-	
+	if tree == nil {
+		fmt.println("tree is nil");
+	}
 }
 
 test_source :: `
-(def-fun dove/add (TInt TInt) (TInt)
-    "a description"
-    (add 0.12 13.12138)
+(
+(def-fun dove/add ((a TInt) (b TInt))
+    "hello world"
+    (add a b)
+)
 )
 `

@@ -6,13 +6,20 @@ import "core:strings"
 import "core:strconv"
 import "core:unicode/utf8"
 
+TokenizeContext :: struct {
+	ptr : int
+}
+
 // TODO(Dove): optimize string and symbol and number by to_writer
 tokenize :: proc(using parser : ^Parser) -> TokenError {
 	if tokenized { return .None; }
+	// ptr : int = 0;
+	ctx := TokenizeContext{0};
+	length := len(runes);
 	tok := Token{.None, "just an empty token, useless"};
 	err := TokenError.None;
 	for tok.type != .End {
-		tok, err = parser_next_token(parser);
+		tok, err = parser_next_token(parser, &ctx);
 		if err == .None {
             append(&tokens, tok);
 		} else {
@@ -23,13 +30,20 @@ tokenize :: proc(using parser : ^Parser) -> TokenError {
 	return .None;
 }
 
+show_tokens :: proc(using parser : ^Parser) {
+	if !tokenized { return; }
+	for tok in tokens {
+		fmt.printf("%v(%v)\n", tok.type, tok.value);
+	}
+}
+
 @(private="file")
 _token_buffer : [512]rune;
 
-parser_next_token :: proc(using parser : ^Parser) -> (Token, TokenError) {
-	if ptr >= cast(u32)len(runes) { return Token{.End, 0}, .None; }
+parser_next_token :: proc(using parser : ^Parser, using tctx : ^TokenizeContext) -> (Token, TokenError) {
+	if ptr >= cast(int)len(runes) { return Token{.End, 0}, .None; }
 
-	if token_consume_space(parser) == -1 { return Token{.End, 0}, .None; }
+	if token_consume_space(parser, tctx) == -1 { return Token{.End, 0}, .None; }
 	current := runes[ptr];
 	token_buffer_ptr := 0;
 
@@ -38,7 +52,7 @@ parser_next_token :: proc(using parser : ^Parser) -> (Token, TokenError) {
 	if current == ',' {ptr += 1; return Token{.Comma, 0}, .None; }	
 
 	if current == '\"' {
-		str_tok, err := token_get_string(parser);
+		str_tok, err := token_get_string(parser, tctx);
 		if err == .None {
 			return str_tok, .None;
 		} else {
@@ -47,7 +61,7 @@ parser_next_token :: proc(using parser : ^Parser) -> (Token, TokenError) {
 	}
 
 	if current == '-' || rune_is_number(current) {
-		num_tok, err := token_get_number(parser);
+		num_tok, err := token_get_number(parser, tctx);
 		if err == .None {
 			return num_tok, .None;
 		} else {
@@ -77,7 +91,7 @@ parser_next_token :: proc(using parser : ^Parser) -> (Token, TokenError) {
 
 
 @(private="file")
-token_get_string :: proc(using parser:^Parser) -> (Token, TokenError) {
+token_get_string :: proc(using parser:^Parser, using tctx : ^TokenizeContext) -> (Token, TokenError) {
 	rune_len := len(runes);
 	builder := strings.builder_make(context.temp_allocator);
 	ptr += 1;// to pass the prefix quote
@@ -110,7 +124,7 @@ token_get_string :: proc(using parser:^Parser) -> (Token, TokenError) {
 
 		strings.write_rune(&builder, current);
 		ptr += 1;
-		if ptr > cast(u32)rune_len {
+		if ptr > rune_len {
 			return Token{.None, nil}, .StringError;
 		}
 	}
@@ -118,8 +132,15 @@ token_get_string :: proc(using parser:^Parser) -> (Token, TokenError) {
 }
 
 @(private="file")// TODO(Dove): `get_number` can only parse integer for now, add float
-token_get_number :: proc(using parser:^Parser) -> (Token, TokenError)  {
+token_get_number :: proc(using parser:^Parser, using tctx : ^TokenizeContext) -> (Token, TokenError)  {
 	builder := strings.builder_make(context.temp_allocator);
+
+	negative := false;
+	if runes[ptr] == '-' {
+		negative = true;
+		ptr += 1;
+	}
+	
 	point := false;
 	for {
 	    current := runes[ptr];
@@ -139,12 +160,13 @@ token_get_number :: proc(using parser:^Parser) -> (Token, TokenError)  {
 		}
 	}
 	value := strconv.atof(strings.to_string(builder));
+	if negative { value *= -1; }
 	return Token{.Number, value}, .None;
 }
 
 @(private="file")
-token_consume_space :: proc(using parser : ^Parser) -> i32 {
-	length := cast(u32)len(runes);
+token_consume_space :: proc(using parser : ^Parser, using tctx : ^TokenizeContext) -> i32 {
+	length := len(runes);
 	consumed :i32= 0;
 	for ptr < length && strings.is_ascii_space(runes[ptr]) {
 		ptr += 1;
@@ -176,7 +198,7 @@ rune_is_number :: proc(r : rune) -> bool {
 
 
 Token :: struct {
-	type : TokenType,
+	type  : TokenType,
 	value : TokenValue
 }
 
