@@ -6,9 +6,26 @@ import "core:strings"
 import "core:strconv"
 import "core:unicode/utf8"
 
+// TODO(Dove): optimize string and symbol and number by to_writer
+tokenize :: proc(using parser : ^Parser) -> TokenError {
+	if tokenized { return .None; }
+	tok := Token{.None, "just an empty token, useless"};
+	err := TokenError.None;
+	for tok.type != .End {
+		tok, err = parser_next_token(parser);
+		if err == .None {
+            append(&tokens, tok);
+		} else {
+			return err;
+		}
+	}
+	tokenized = true;
+	return .None;
+}
 
 @(private="file")
 _token_buffer : [512]rune;
+
 parser_next_token :: proc(using parser : ^Parser) -> (Token, TokenError) {
 	if ptr >= cast(u32)len(runes) { return Token{.End, 0}, .None; }
 

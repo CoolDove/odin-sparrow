@@ -8,30 +8,28 @@ import "core:unicode/utf8"
 Parser :: struct {
 	runes : []rune,
 	ptr : u32,
+	tokenized : bool,
+	tokens : [dynamic]Token
 }
 
-// TODO(Dove):
-// tokenize: string, symbol prefix
-// 
+parser_make :: proc(source:string, allocator := context.allocator) -> ^Parser{
+	p := new(Parser);
+	using p;
+	runes = utf8.string_to_runes(test_source);
+    ptr = 0;
+	tokens = make([dynamic]Token, allocator);
+	return p;
+}
+parser_release :: proc(using parser:^Parser) {
+	delete(tokens);
+	free(parser);
+}
+
 parser_parse :: proc(using parser : ^Parser, tree : ^Tree) -> ParseResult {
-	p :int= 0;
-	source_len := len(runes);
-
-	tok := Token{.None, "just an empty token, useless"};
-	err := TokenError.None;
-	for tok.type != .End {
-		tok, err = parser_next_token(parser);
-		if err == .None {
-		    fmt.println(tok);
-		} else {
-		    fmt.println(err);
-			return ParseResult{"bad"};
-		}
-
-	}
-
+	err := tokenize(parser);
 	return ParseResult{"good"};
 }
+
 ParseResult :: struct {
     message : string
 }
@@ -41,6 +39,10 @@ Tree :: struct {
 	value : TreeValue
 }
 
+TreeType :: enum {
+	Number, String, Function
+}
+
 TreeValue :: union {
-	int, string
+	f64, string, 
 }

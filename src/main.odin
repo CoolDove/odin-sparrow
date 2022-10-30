@@ -12,8 +12,13 @@ main :: proc () {
 	fmt.println("");
 
 	tree : Tree;
-	parser := Parser{utf8.string_to_runes(test_source), 0}
-	parser_parse(&parser, &tree);
+	parser := parser_make(test_source);
+	parser_parse(parser, &tree);
+
+    for tok in parser.tokens {
+		fmt.println("token: ", tok);
+	}
+	
 }
 
 test_source :: `
