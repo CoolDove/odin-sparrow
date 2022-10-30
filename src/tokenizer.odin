@@ -103,33 +103,26 @@ token_get_string :: proc(using parser:^Parser) -> (Token, TokenError) {
 @(private="file")// TODO(Dove): `get_number` can only parse integer for now, add float
 token_get_number :: proc(using parser:^Parser) -> (Token, TokenError)  {
 	builder := strings.builder_make(context.temp_allocator);
+	point := false;
 	for {
 	    current := runes[ptr];
 		if rune_is_number(current) {
 			strings.write_rune(&builder, current);
 			ptr += 1;
+		} else if current == '.' {
+			if !point {
+				point = true
+				strings.write_rune(&builder, current);
+				ptr += 1;
+			} else {
+				return Token{.None, nil}, .NumberError;
+			}
 		} else {
 			break;
 		}
 	}
 	value := strconv.atof(strings.to_string(builder));
 	return Token{.Number, value}, .None;
-}
-
-@(private="file")
-rune_is_valid_in_symbol :: proc(r : rune, is_first := false) -> bool {
-	if (r <= 'z' && r >= 'a') || (r <= 'Z' && r >= 'A') {
-		return true;
-	}
-	if !is_first {
-		return r == '-' || r == '_' || r == '/' || (r <= '9' && r >= '0');
-	}
-	return false;
-}
-
-@(private="file")
-rune_is_number :: proc(r : rune) -> bool {
-    return r <= '9' && r >= '0';
 }
 
 @(private="file")
@@ -145,6 +138,23 @@ token_consume_space :: proc(using parser : ^Parser) -> i32 {
 	} else {
 	    return -1;
 	}
+}
+
+
+@(private="file")
+rune_is_valid_in_symbol :: proc(r : rune, is_first := false) -> bool {
+	if (r <= 'z' && r >= 'a') || (r <= 'Z' && r >= 'A') {
+		return true;
+	}
+	if !is_first {
+		return r == '-' || r == '_' || r == '/' || (r <= '9' && r >= '0');
+	}
+	return false;
+}
+
+@(private="file")
+rune_is_number :: proc(r : rune) -> bool {
+    return r <= '9' && r >= '0';
 }
 
 

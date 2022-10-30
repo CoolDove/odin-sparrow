@@ -19,6 +19,6 @@ main :: proc () {
 test_source :: `
 (def-fun dove/add (TInt TInt) (TInt)
     "a description"
-    (add 12 13)
+    (add 0.12 13.12138)
 )
 `
