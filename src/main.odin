@@ -14,6 +14,9 @@ print_label :: proc(label : string) {
 }
 
 sparrow :: proc() {
+	prog_init_program();
+	defer prog_release_program();
+
 	print_label("Source");
 	fmt.println(test_source);
 
@@ -21,9 +24,8 @@ sparrow :: proc() {
 	defer parser_release(parser);
 
 	tokenize(parser);
-
-	print_label("Tokens");
-	show_tokens(parser);
+	// print_label("Tokens");
+	// show_tokens(parser);
 
 	print_label("Abstract Syntax Tree");
 	tree, result := parse(parser);
@@ -41,5 +43,8 @@ sparrow :: proc() {
 }
 
 test_source :: `
-(add (mul 2 8) (add 8 8))
+(prog
+	(div (mul 2 8) (add 8 8))
+	(add 12 12)
+)
 `

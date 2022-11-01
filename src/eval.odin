@@ -7,19 +7,6 @@ import "core:unicode/utf8"
 
 import "core:log"
 
-Object :: struct {
-	type : ObjectType,
-	value : ObjectValue
-}
-ObjectType :: enum {
-	Nil, Number, String
-}
-ObjectValue :: union {
-	f64,// Number
-	string,// String/Symbol
-	i64// maybe some value
-}
-
 eval_tree :: proc(using tree : ^Tree) -> Object {
 	switch type {
 	case .MetaList:
@@ -27,7 +14,7 @@ eval_tree :: proc(using tree : ^Tree) -> Object {
 	case .Number:
 		return Object{.Number, tree.value.(f64)};
 	case .Symbol:
-		return prog_symbol_var(tree);
+		return prog_get_symbol(tree);
 	case .String:
 		return Object{.String, tree.value.(string)};
 	}
@@ -38,30 +25,24 @@ eval_tree :: proc(using tree : ^Tree) -> Object {
 // Currently, we take metalist as a function call.
 // And it only supports some basic built-in functions.
 _eval_metalist :: proc(using tree : ^Tree) -> Object {
-	func := tree.child;
+	assert(tree.type == .MetaList);
+	if tree.child == nil { return Object{.Nil, nil} }
+	
+	func_node := tree.child;
+    assert(func_node != nil && func_node.type == .Symbol);
 
-    assert(func != nil && func.type == .Symbol);
+    func_symbol, ok := prog_get_symbol(func_node);
+	assert(ok && func_symbol.type == .Function);
+	function := func_symbol.value.(^Function);
+	param := func_node.next;
 
-	func_name := func.value.(string);
-	param := func.next;
-	if func_name == "add" {
-		result :f64= 0;
-		for param != nil {
-			v := eval_tree(param);
-			assert(v.type == .Number);
-			result += v.value.(f64);
-			param = param.next;
-		}
-		return Object{.Number, result};
-	} else if func_name == "mul" {
-		result :f64= 1;
-		for param != nil {
-			v := eval_tree(param);
-			assert(v.type == .Number);
-			result *= param.value.(f64);
-			param = param.next;
-		}
-		return Object{.Number, result};
+	if function.type == .BuiltIn {
+		process := function.data.(BuiltInFunction);
+		return process(param);
+	} else if function.type == .Default {
+		func_tree := function.data.(^Tree);
+		return eval_tree(func_tree);
 	}
+
 	return Object{.Nil, nil};
 }

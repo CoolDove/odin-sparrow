@@ -22,4 +22,9 @@
 ## todo
 
 doing:
-implement the eval of built-in functions
+- [x] implement the eval of built-in functions
+- [x] symbol map
+- [x] built-in function reg/call
+- [ ] default function reg/call
+- [ ] add object type: boolean
+- [ ] parsing: comment
