@@ -35,13 +35,11 @@ sparrow :: proc() {
 	if tree == nil {
 		fmt.println("tree is nil");
 	}
+
+	print_label("Eval");
+	fmt.println(eval_tree(tree));
 }
 
 test_source :: `
-(
-(def-fun dove/add ((a TInt) (b TInt))
-    "hello world"
-    (add a b)
-)
-)
+(add (mul 2 8) (add 8 8))
 `

@@ -5,8 +5,6 @@ import "core:os"
 import "core:strings"
 import "core:unicode/utf8"
 
-import "core:log"
-
 Parser :: struct {
 	runes : []rune,
 	tokenized : bool,
@@ -45,7 +43,6 @@ parse :: proc(using parser : ^Parser, allocator := context.allocator) -> (^Tree,
 	}
 	return nil, ParseResult{.Bad, "failed to tokenize"};
 }
-
 
 // NOTE:
 // `parse_` prefixed functions take a tokptr to fetch token from the parser.
@@ -164,12 +161,7 @@ show_tree :: proc(tree : ^Tree, ite : int = 0) {
 			child = child.next;
 		}
 	}
-
-	// if tree.type == .MetaList {
-		// fmt.printf("%v)\n", prefix_tabs);
-	// }
 }
-
 
 
 ParseResult :: struct {

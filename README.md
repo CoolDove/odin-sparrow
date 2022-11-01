@@ -17,3 +17,9 @@
 ## targets
 - Has `main` proc
 - Bind functions in c language lib
+
+
+## todo
+
+doing:
+implement the eval of built-in functions
