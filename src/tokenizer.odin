@@ -47,6 +47,16 @@ parser_next_token :: proc(using parser : ^Parser, using tctx : ^TokenizeContext)
 	current := runes[ptr];
 	token_buffer_ptr := 0;
 
+	if current == ';' {// comment
+		for current != '\n' {
+			ptr += 1;
+			current = runes[ptr];
+		}
+		ptr += 1;
+	}
+	if token_consume_space(parser, tctx) == -1 { return Token{.End, 0}, .None; }
+	current = runes[ptr];
+
 	if current == '(' {ptr += 1; return Token{.LParen, 0}, .None; }	
 	if current == ')' {ptr += 1; return Token{.RParen, 0}, .None; }	
 	if current == ',' {ptr += 1; return Token{.Comma, 0}, .None; }	

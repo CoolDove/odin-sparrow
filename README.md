@@ -27,4 +27,4 @@ doing:
 - [x] built-in function reg/call
 - [ ] default function reg/call
 - [ ] add object type: boolean
-- [ ] parsing: comment
+- [x] parsing: comment, use `;` to start a comment(till the line end)

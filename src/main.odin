@@ -33,7 +33,9 @@ sparrow :: proc() {
 	    show_tree(tree);
 	} else {
 		fmt.println("failed to parse");
+		return;
 	}
+
 	if tree == nil {
 		fmt.println("tree is nil");
 	}
@@ -44,7 +46,10 @@ sparrow :: proc() {
 
 test_source :: `
 (prog
+    ;; test comment
 	(div (mul 2 8) (add 8 8))
-	(add 12 12)
+    (add ; another comment
+        12 12)
+    (mul 40 38)
 )
 `
