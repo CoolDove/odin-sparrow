@@ -49,8 +49,8 @@ sparrow :: proc() {
 
 test_source :: `
 (prog
-;; hello
-    (add 12 12 13 17 1 (mul 12 8 99) 23 23 44)
-;; comment
+    (set dove-id 12)
+    (set dove-id (add dove-id 12))
+    dove-id
 )
 `
