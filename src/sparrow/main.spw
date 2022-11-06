@@ -1,0 +1,11 @@
+(prog
+    (load "string")
+    (load "string")
+
+    (load "calc-money")
+
+
+    (unload "calc-money")
+
+    (module "core")
+)

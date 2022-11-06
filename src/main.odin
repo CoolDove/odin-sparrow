@@ -14,6 +14,8 @@ print_label :: proc(label : string) {
 }
 
 sparrow :: proc() {
+	defer fmt.println("PROGRAM END");
+
 	prog_init_program();
 	defer prog_release_program();
 
@@ -24,6 +26,7 @@ sparrow :: proc() {
 	defer parser_release(parser);
 
 	tokenize(parser);
+
 	// print_label("Tokens");
 	// show_tokens(parser);
 
@@ -46,10 +49,8 @@ sparrow :: proc() {
 
 test_source :: `
 (prog
-    ;; test comment
-	(div (mul 2 8) (add 8 8))
-    (add ; another comment
-        12 12)
-    (mul 40 38)
+;; hello
+    (add 12 12 13 17 1 (mul 12 8 99) 23 23 44)
+;; comment
 )
 `

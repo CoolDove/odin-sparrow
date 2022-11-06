@@ -14,6 +14,10 @@
 
 ```
 
+## Thoughts
+There are just `data` in lisp, so maybe i shouldn't seperate Tree and Object
+
+
 ## targets
 - Has `main` proc
 - Bind functions in c language lib
@@ -28,3 +32,4 @@ doing:
 - [ ] default function reg/call
 - [ ] add object type: boolean
 - [x] parsing: comment, use `;` to start a comment(till the line end)
+- [ ] Check out odin Allocator things, to optimize the memory management.
