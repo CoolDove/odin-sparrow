@@ -49,8 +49,9 @@ sparrow :: proc() {
 
 test_source :: `
 (prog
-    (set dove-id 12)
-    (set dove-id (add dove-id 12))
-    dove-id
+    (print "hello world")
+    (print 42)
+    (print (add 12 12))
+    (print (add 12 12))
 )
 `

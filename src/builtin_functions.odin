@@ -72,7 +72,6 @@ builtin_defun :: proc(param : ^Object) -> Object {
 	}
 	return v;
 }
-
 builtin_set :: proc(param : ^Object) -> Object {
 	if param == nil { return build_object(.Nil, nil); }
 	if param.next == nil {// Too less params.
@@ -91,45 +90,26 @@ builtin_set :: proc(param : ^Object) -> Object {
 	return value;
 }
 
-// NOTE(Dove): Write this to combine SyntaxTreeNode with Object together, much more lisp style.
-
-builtin_eval :: proc(using tree : ^Object, eval : bool) -> Object {
-	assert(tree != nil);
-	switch type {
-	case .Number:
-		return build_object(.Number, tree.value.(f64));
-	case .Symbol:
-		return prog_get_symbol(tree);
-	case .String:
-		return build_object(.String, tree.value.(string));
-	case .Function:
-		return build_object(.Function, tree.value.(^Function));
-	case .List:
-        if eval {// Take the list as a function call.
-			elem := tree.child;
-			params := tree.child.next;
-			if elem == nil { return build_object(.Nil, nil); }
-			if elem.type == .Function {
-				func_symbol, ok := prog_get_symbol(elem);
-				if ok && func_symbol.type == .Function {
-					function := func_symbol.value.(^Function);
-					switch function.type {
-					case .BuiltIn :
-						process := function.data.(BuiltInFunction);
-						process(params);
-					case .Default :
-
-
-						return build_object(.Nil, nil);
-					}
-				}
-			} else {
-			}
-		} else {
-		}
-    case .Nil:
+builtin_print :: proc(param: ^Object) -> Object {
+	if param == nil || param.next != nil {
+		fmt.println("Error, wrong arguments number.");
 		return build_object(.Nil, nil);
 	}
 
-	return build_object(.Nil, nil);
+	value := eval_tree(param);
+
+	fmt.println(object_to_string(&value));
+
+	return value;
 }
+
+builtin_eval :: proc(param : ^Object) -> Object {
+	if param == nil || param.next != nil { return build_object(.Nil, nil); }
+	return eval_tree(param);
+}
+
+// @InComplete: Make a data list with this function.
+// builtin_list :: proc(param : ^Object) -> Object {
+	// list_root := build_object(.List, nil, false);
+	// return 
+// }

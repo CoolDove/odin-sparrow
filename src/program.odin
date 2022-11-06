@@ -9,7 +9,7 @@ import "core:unicode/utf8"
 Object :: struct {
 	type : ObjectType,
 	value : ObjectValue,
-	autoeval : bool,
+	is_data : bool,// If false, list would be used as function call.
     using tree_node : Tree(Object)
 }
 Tree :: struct($T: typeid) {
@@ -31,8 +31,51 @@ List :: struct {
 	next : ^Object
 }
 
-build_object :: proc(type := ObjectType.Nil, value :ObjectValue= nil, autoeval := true) -> Object {
-	return Object{type, value, autoeval, Tree(Object){}};
+object_to_string :: proc(obj: ^Object, allocator := context.allocator) -> string {
+	sb : strings.Builder;
+	strings.builder_init(&sb);
+	defer strings.builder_destroy(&sb);
+
+	temp_buffer : [128]u8;
+
+	value := eval_tree(obj);
+
+    switch value.type {
+    case .Nil:
+		return "nil";
+	case .Number:
+		number_str := fmt.aprintf("{}", value.value.(f64));
+		strings.write_string(&sb, number_str);
+		delete(number_str);
+	case .String:
+		strings.write_string(&sb, value.value.(string));
+	case .Symbol:
+		symbol_obj, ok := prog_get_symbol(&value);
+		if ok {
+			strings.write_string(&sb, object_to_string(&symbol_obj));
+		} else {
+			strings.write_string(&sb, "nil");
+		}
+	case .Function:
+		function_desc := fmt.aprintf("function");
+		strings.write_string(&sb, function_desc);
+		delete(function_desc);
+	case .List:
+		strings.write_rune(&sb, '(');
+		ptr := value.child;
+		for ptr != nil {
+			strings.write_string(&sb, object_to_string(ptr));
+			ptr = ptr.next;
+			if ptr != nil {strings.write_rune(&sb, ' ');}
+		}
+		strings.write_rune(&sb, ')');
+	}
+
+	return strings.to_string(sb);
+}
+
+build_object :: proc(type := ObjectType.Nil, value :ObjectValue= nil, is_data := false) -> Object {
+	return Object{type, value, is_data, Tree(Object){}};
 } 
 
 
@@ -73,6 +116,7 @@ prog_init_program :: proc(allocator := context.allocator) {
 	reg_function("set", builtin_set);
 	reg_function("defun", builtin_defun);
 
+	reg_function("print", builtin_print);
 }
 prog_release_program :: proc() {
 	{
