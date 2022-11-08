@@ -6,30 +6,36 @@
 
 ```
 
-(def-fun dove/add (TInt TInt) (TInt)
-    "a description"
+(prog
+	(def dove/add (a b)
+		"an optional description"
+		(add a b)
+	)
+
+    (dove/add 12 13)
+
 )
 
 (def-fun main)
 
 ```
 
-## Thoughts
-There are just `data` in lisp, so maybe i shouldn't seperate Tree and Object
+## Progress
+- Tokenize and parser, get a AST from source code.
+- Simple evaluation.
+- Global environment, and define variable.
 
-
-## targets
+## Targets
 - Has `main` proc
 - Bind functions in c language lib
 
-
-## todo
+## Doing
+- [ ] Add AST struct.
 - [ ] !!! Research odin mem things, make a `obj_copy`, this is important. It should recursively copy an object(together with its children, that's what `recursively` means) to another one, with a specified allocator.
 - [ ] !! Write a copy map.
 
-doing:
-- [x] implement the eval of built-in functions
+## Todo
 - [ ] default function reg/call
 - [ ] add object type: boolean
 - [x] parsing: comment, use `;` to start a comment(till the line end)
-- [ ] Check out odin Allocator things, to optimize the memory management.
+

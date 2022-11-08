@@ -22,6 +22,12 @@ ParseContext :: struct {
 	ptr : int // token index
 }
 
+AST :: struct {
+	root : ^Object,
+	_tree_stack : mem.Stack,
+	_allocator  : mem.Allocator
+}
+
 parser_make :: proc(source:string, allocator := context.allocator) -> ^Parser {
 	p := new(Parser, allocator);
 	{
