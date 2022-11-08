@@ -6,7 +6,6 @@ import "core:os"
 import "core:strings"
 import "core:unicode/utf8"
 
-
 Object :: struct {
 	type : ObjectType,
 	value : ObjectValue,
@@ -32,4 +31,17 @@ List :: struct {
 obj_list :: proc(obj: ^Object) -> []Object {
 	assert(obj != nil && obj.type == .List, "Invalid obj to get list.");
 	return obj.value.(List).data[:];
+}
+
+
+obj_copy_from_ptr :: proc(obj: ^Object, allocator := context.allocator) -> Object {
+	return Object{};
+}
+obj_copy_from_obj :: proc(obj: Object, allocator := context.allocator) -> Object {
+	return Object{};
+}
+
+obj_copy :: proc {
+	obj_copy_from_obj,
+	obj_copy_from_ptr,
 }

@@ -24,11 +24,11 @@ There are just `data` in lisp, so maybe i shouldn't seperate Tree and Object
 
 
 ## todo
+- [ ] !!! Research odin mem things, make a `obj_copy`, this is important. It should recursively copy an object(together with its children, that's what `recursively` means) to another one, with a specified allocator.
+- [ ] !! Write a copy map.
 
 doing:
 - [x] implement the eval of built-in functions
-- [x] symbol map
-- [x] built-in function reg/call
 - [ ] default function reg/call
 - [ ] add object type: boolean
 - [x] parsing: comment, use `;` to start a comment(till the line end)

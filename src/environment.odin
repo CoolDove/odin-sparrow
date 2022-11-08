@@ -11,12 +11,24 @@ Environment :: struct {
 	parent : ^Environment,
 }
 
-env_make :: proc(allocator := context.allocator) -> ^Environment {
+env_make_with_map :: proc(init_map: map[string]Object, allocator := context.allocator) -> ^Environment {
 	context.allocator = allocator;
 	env := new(Environment);
 	env.data = make(map[string]Object, 32);
 	return env;
 }
+env_make_empty :: proc(allocator := context.allocator) -> ^Environment {
+	context.allocator = allocator;
+	env := new(Environment);
+	env.data = make(map[string]Object, 32);
+	return env;
+}
+
+env_make :: proc {
+	env_make_empty,
+	env_make_with_map,
+}
+
 env_destroy :: proc(using env : ^Environment) {
 	{
 	    delete(data);
