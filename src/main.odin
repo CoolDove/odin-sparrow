@@ -40,11 +40,11 @@ sparrow :: proc() {
 	}
 
 	// print_label("Eval");
-	// fmt.println(eval_tree(tree));
+	fmt.println(eval_tree(tree));
 }
 
 test_source :: `
-(add 12 13 (mul 2 2))
+(add 2 1 (add 1 2))
 ;; this is a comment
 `
 

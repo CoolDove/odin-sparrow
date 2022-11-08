@@ -1,25 +1,40 @@
 package main
-// 
-// import "core:fmt"
-// import "core:os"
-// import "core:strings"
-// import "core:unicode/utf8"
-// 
-// import "core:log"
-// 
-// eval_tree :: proc(using tree : ^Object) -> Object {
-	// #partial switch type {
-	// case .List:
-		// return _eval_list(tree);
-	// case .Number:
-		// return build_object(.Number, tree.value.(f64));
-	// case .Symbol:
+
+import "core:fmt"
+import "core:os"
+import "core:strings"
+import "core:unicode/utf8"
+
+
+eval_tree :: proc(using tree : Object) -> Object {
+	#partial switch type {
+	case .List:
+		list := tree.value.(List).data[:];
+        assert(list[0].type == .Symbol, "Invalid symbol.")
+
+		symbol := list[0].value.(string);
+		
+		if symbol == "add" {
+			result : f64 = 0;
+			for e in list[1:] {
+				evaled := eval_tree(e);
+				assert(evaled.type == .Number, "Invalid type");
+				result += evaled.value.(f64);
+			}
+			return Object{.Number, result};
+		}
+		
+
+	case .Number:
+		return Object{ .Number, tree.value.(f64) };
+	case .Symbol:
+		return Object{};
 		// return prog_get_symbol(tree);
-	// case .String:
-		// return build_object(.String, tree.value.(string));
-	// }
-	// return build_object();
-// }
+	case .String:
+		return Object{ .String, tree.value.(string) };
+	}
+	return Object{};
+}
 // 
 // 
 // @(private="file")
