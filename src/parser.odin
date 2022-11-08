@@ -49,26 +49,26 @@ parser_release :: proc(using parser:^Parser) {
 	free(parser);
 }
 
-parse :: proc(using parser : ^Parser) -> (^Object, ParseResult) {
+parse :: proc(using parser : ^Parser) -> (Object, ParseResult) {
 	err := tokenize(parser);
 	if err == .None {
-		tree : ^Object;
-		consumed : int;
-		tree, consumed = parse_list(parser, 0);
+		// tree : Object;
+		// consumed : int;
+		tree, consumed := parse_list(parser, 0);
 		if consumed == 0 {
-			return nil, ParseResult{.Bad, "failed to parse"};
+			return Object{}, ParseResult{.Bad, "failed to parse"};
 		} else {
 	        return tree, ParseResult{.Good, "parse succ"};
 		}
 	}
-	return nil, ParseResult{.Bad, "failed to tokenize"};
+	return Object{}, ParseResult{.Bad, "failed to tokenize"};
 }
 
 // NOTE:
 // `parse_` prefixed functions take a tokptr to fetch token from the parser.
 // The return value is consumed tokens count, should be added to tokptr.
 // Returning 0 means parsing failed.
-parse_list :: proc(using parser : ^Parser, tokptr : int) -> (^Object, int) {
+parse_list :: proc(using parser : ^Parser, tokptr : int) -> (Object, int) {
 	tptr := tokptr;
 	tok  := tokens[tptr];
 
@@ -76,19 +76,14 @@ parse_list :: proc(using parser : ^Parser, tokptr : int) -> (^Object, int) {
         tptr += 1;
 		tok = tokens[tptr];
 	} else {
-		return nil, 0;
+		return Object{}, 0;
 	}
 
-	root := new(Object, _tree_allocator);
-	root.type = .List;
-
-	last_bro : ^Object;
-
+	list := make([dynamic]Object, _tree_allocator);
 	good := true;
-
 	for {
-		node     : ^Object;
-		consumed : int;
+		node     : Object = ---;
+		consumed : int    = ---;
 
 		if tok.type == .LParen {
 			node, consumed = parse_list(parser, tptr);
@@ -97,13 +92,7 @@ parse_list :: proc(using parser : ^Parser, tokptr : int) -> (^Object, int) {
 		}
 
 		if consumed != 0 {// append to metalist root
-			node.parent = root;
-			if last_bro == nil {
-				root.child = node;
-			} else {
-				last_bro.next = node;
-			}
-			last_bro = node;
+			append(&list, node);
 			tptr += consumed;
 		} else {// failed to parse metalist
 			good = false;
@@ -122,41 +111,32 @@ parse_list :: proc(using parser : ^Parser, tokptr : int) -> (^Object, int) {
 	}
 	if good {
 		total_consumed := tptr - tokptr;
-		return root, total_consumed;
+		return Object{.List, List{list, true}}, total_consumed;
 	}
-	return nil, 0;
+
+	return Object{}, 0;
 }
 
 // NOTE(Dove): number or string, or symbol
-parse_value :: proc(using parser : ^Parser, tokptr : int) -> (^Object, int) {
+parse_value :: proc(using parser : ^Parser, tokptr : int) -> (Object, int) {
 	tok := tokens[tokptr];
-	obj := new(Object, _tree_allocator);
+	obj :Object= ---;
 	good := false;
 	
     #partial switch tok.type {
 	case .Number:
-		obj.type  = .Number;
-		obj.value = tok.value.(f64);
-		good = true;
+		return Object{.Number, tok.value.(f64)}, 1;
 	case .String:
-		obj.type  = .String;
-		obj.value = tok.value.(string);
-		good = true;
+		return Object{.String, tok.value.(string)}, 1;
 	case .Symbol:
-		obj.type  = .Symbol;
-		obj.value = tok.value.(string);
-		good = true;
-	}
-
-	if good {
-		return obj, 1;
+		return Object{.Symbol, tok.value.(string)}, 1;
 	}
 	
-	return nil, 0;
+	return Object{.Nil, nil}, 0;
 }
 
-show_tree :: proc(tree : ^Object, ite : int = 0) {
-	if tree == nil { return; }
+show_tree :: proc(root : ^Object, ite : int = 0) {
+	if root == nil { return; }
 
 	sb := strings.builder_make(context.allocator);
 	defer strings.builder_destroy(&sb);
@@ -164,24 +144,20 @@ show_tree :: proc(tree : ^Object, ite : int = 0) {
 	for i in 0..<ite { strings.write_string(&sb, "  "); }
 	prefix_tabs := strings.to_string(sb);
 
-	#partial switch tree.type {
+	#partial switch root.type {
 	case .List:
 		fmt.printf("%v|___\n", prefix_tabs);
-	case .Number:
-		fmt.printf("%v|%v\n", prefix_tabs, tree.value.(f64));
-	case .Symbol:
-		fmt.printf("%v|%v\n", prefix_tabs, tree.value.(string));
-	case .String:
-		fmt.printf("%v|\"%v\"\n", prefix_tabs, tree.value.(string));
-	}
-
-	child := tree.child;
-
-	if child != nil {
-		for child != nil {
-			show_tree(child, ite + 1);
-			child = child.next;
+		childs : []Object = root.value.(List).data[:];
+		for ind in 0..<len(childs) {
+			show_tree(&childs[ind], ite + 1);
 		}
+		fmt.printf("%v|---\n", prefix_tabs);
+	case .Number:
+		fmt.printf("%v|%v\n", prefix_tabs, root.value.(f64));
+	case .Symbol:
+		fmt.printf("%v|%v\n", prefix_tabs, root.value.(string));
+	case .String:
+		fmt.printf("%v|\"%v\"\n", prefix_tabs, root.value.(string));
 	}
 }
 

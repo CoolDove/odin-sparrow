@@ -16,8 +16,8 @@ print_label :: proc(label : string) {
 sparrow :: proc() {
 	defer fmt.println("PROGRAM END");
 
-	prog_init_program();
-	defer prog_release_program();
+	// prog_init_program();
+	// defer prog_release_program();
 
 	print_label("Source");
 	fmt.println(test_source);
@@ -33,25 +33,27 @@ sparrow :: proc() {
 	print_label("Abstract Syntax Tree");
 	tree, result := parse(parser);
 	if result.type == .Good {
-	    show_tree(tree);
+	    show_tree(&tree);
 	} else {
 		fmt.println("failed to parse");
 		return;
 	}
 
-	if tree == nil {
-		fmt.println("tree is nil");
-	}
-
-	print_label("Eval");
-	fmt.println(eval_tree(tree));
+	// print_label("Eval");
+	// fmt.println(eval_tree(tree));
 }
 
 test_source :: `
-(prog
-    (print "hello world")
-    (print 42)
-    (print (add 12 12))
-    (print (add 12 12))
-)
+(add 12 13 (mul 2 2))
+;; this is a comment
 `
+
+/*
+
+(define (hello-world)
+    ()
+)
+(def hello (a b) (prog (add 1 2) (add 2 3)))
+
+
+*/
