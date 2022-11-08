@@ -1,4 +1,4 @@
-## This is a lisp made in odin-lang.
+## This is a lisp interpreter made in odin-lang.
 
 
 
