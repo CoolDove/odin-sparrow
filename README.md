@@ -4,8 +4,7 @@
 
 ## syntax like
 
-```
-
+```lisp
 (prog
 	(def dove/add (a b)
 		"an optional description"
@@ -15,7 +14,6 @@
     (dove/add 12 13)
 
 )
-
 (def-fun main)
 
 ```
