@@ -6,7 +6,7 @@ import "core:strings"
 import "core:unicode/utf8"
 
 
-eval_tree :: proc(using tree : Object) -> Object {
+eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 	#partial switch type {
 	case .List:
 		list := tree.value.(List).data[:];
@@ -17,17 +17,25 @@ eval_tree :: proc(using tree : Object) -> Object {
 		if symbol == "add" {
 			result : f64 = 0;
 			for e in list[1:] {
-				evaled := eval_tree(e);
+				evaled := eval_tree(e, env);
 				assert(evaled.type == .Number, "Invalid type");
 				result += evaled.value.(f64);
 			}
 			return Object{.Number, result};
+		} else if symbol == "def" {
+			name := list[1].value.(string);
+			// TODO(Dove): Should be a `copy_obj` function instead of `list[2]`.
+			obj  := list[2];
+
+			env_define(env, name, obj);
+			return obj;
 		}
-		
 
 	case .Number:
 		return Object{ .Number, tree.value.(f64) };
 	case .Symbol:
+		symbol, ok := env_resolve(env, tree.value.(string));
+		if ok { return symbol; }
 		return Object{};
 		// return prog_get_symbol(tree);
 	case .String:

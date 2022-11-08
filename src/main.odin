@@ -16,8 +16,8 @@ print_label :: proc(label : string) {
 sparrow :: proc() {
 	defer fmt.println("PROGRAM END");
 
-	// prog_init_program();
-	// defer prog_release_program();
+	prog_init_program();
+	defer prog_release_program();
 
 	print_label("Source");
 	fmt.println(test_source);
@@ -40,11 +40,11 @@ sparrow :: proc() {
 	}
 
 	// print_label("Eval");
-	fmt.println(eval_tree(tree));
+	fmt.println(eval_tree(tree, program.global));
 }
 
 test_source :: `
-(add 2 1 (add 1 2))
+(add 2 1 (def "dove" 2) dove)
 ;; this is a comment
 `
 
