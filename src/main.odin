@@ -44,7 +44,7 @@ sparrow :: proc() {
 }
 
 test_source :: `
-(add 2 1 (def "dove" 2) dove)
+(def dove (list 1 2))
 ;; this is a comment
 `
 

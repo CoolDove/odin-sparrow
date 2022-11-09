@@ -24,24 +24,51 @@ ObjectValue :: union #align 4 {
 
 List :: struct {
 	data : [dynamic]Object,
-	keep : bool
+	protected : bool
 	// If this list should be keeped, otherwise it would be deleted after evaluation.
 }
 
-obj_list :: proc(obj: ^Object) -> []Object {
+obj_list_data :: proc(obj: ^Object) -> []Object {
 	assert(obj != nil && obj.type == .List, "Invalid obj to get list.");
 	return obj.value.(List).data[:];
 }
 
+// NOTE(Dove): List Object Memory Strategy
+// Usually an Object is stored on stack memory,
+// it will be freed as the block turned off.
+// But the `List` type Object should be allocated on heap memory.
+// 
+// The only way to get a list object is to eval a list,
+// so we could just delete that list object instantly after evaluation.
+// NOTION! List which stored in a symbol is protected, couldn't be deleted.
+// That is marked in the eval function.
 
-obj_copy_from_ptr :: proc(obj: ^Object, allocator := context.allocator) -> Object {
-	return Object{};
-}
-obj_copy_from_obj :: proc(obj: Object, allocator := context.allocator) -> Object {
-	return Object{};
+obj_destroy :: proc(obj: Object, force := false) {
+	// assert(obj.type == .List, "You are going to destroy a non-list object, that's invalid.");
+	if obj.type != .List {return;}
+	list := obj.value.(List);
+	if force || !list.protected {
+		delete(list.data);
+	}
 }
 
-obj_copy :: proc {
-	obj_copy_from_obj,
-	obj_copy_from_ptr,
+// NOTE(Dove): `obj_copy`
+// Main target is to copy the List type object. Its inside buffer should be copied.
+obj_copy :: proc(obj: Object, copy_as_protected := false, allocator := context.allocator) -> Object {
+	// assert(false, "Not Implemented");
+	switch obj.type {
+    case .Nil:      fallthrough
+    case .Number:   fallthrough
+	case .String:   fallthrough
+    case .Symbol:   fallthrough
+	case .Function: return Object{obj.type, obj.value};
+	case .List:
+		buffer   := make([dynamic]Object, allocator);
+		data := obj.value.(List).data[:];
+		for elem in data {
+			append(&buffer, obj_copy(elem));
+		}
+		return Object{.List, List{buffer, copy_as_protected}};
+	}
+	return Object{.Nil, nil};
 }

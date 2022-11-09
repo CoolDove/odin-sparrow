@@ -14,7 +14,7 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 
 		symbol := list[0].value.(string);
 		
-		if symbol == "add" {
+		if symbol == "add" {// @Temporary: Should be function calling later.
 			result : f64 = 0;
 			for e in list[1:] {
 				evaled := eval_tree(e, env);
@@ -25,11 +25,23 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		} else if symbol == "def" {
 			name := list[1].value.(string);
 			// TODO(Dove): Should be a `copy_obj` function instead of `list[2]`.
-			obj  := list[2];
+			obj := obj_copy(eval_tree(list[2], env), true);
 
 			env_define(env, name, obj);
 			return obj;
+		} else if symbol == "list" {
+			sublist_data := make([dynamic]Object);
+
+			for arg in list[1:] {
+				evaled := eval_tree(arg, env);
+				append(&sublist_data, evaled);
+			}
+
+			sublist := List{sublist_data, false};
+			return Object{.List, sublist};
 		}
+
+		obj_destroy(tree);// If protected, cannot destroy.
 
 	case .Number:
 		return Object{ .Number, tree.value.(f64) };
@@ -37,7 +49,6 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		symbol, ok := env_resolve(env, tree.value.(string));
 		if ok { return symbol; }
 		return Object{};
-		// return prog_get_symbol(tree);
 	case .String:
 		return Object{ .String, tree.value.(string) };
 	}
