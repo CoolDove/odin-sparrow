@@ -18,7 +18,7 @@ ObjectValue :: union #align 4 {
 	f64,        // Number
 	string,     // String / SymbolName
 	// i64,        // maybe some value
-	// Function,
+	^Function,
 	List
 }
 
@@ -57,8 +57,8 @@ obj_list_data :: proc(obj: ^Object) -> []Object {
 // NOTION! List which stored in a symbol is protected, couldn't be deleted.
 // That is marked in the eval function.
 
+// TODO(Dove): `obj_destroy`, Function also need to be destroied.
 obj_destroy :: proc(obj: Object, force := false) {
-	// assert(obj.type == .List, "You are going to destroy a non-list object, that's invalid.");
 	if obj.type != .List {return;}
 	list := obj.value.(List);
 	if force || !list.protected {

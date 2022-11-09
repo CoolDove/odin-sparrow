@@ -47,10 +47,7 @@ sparrow :: proc() {
 }
 
 test_source :: `
-(prog
-    (def dove 2)
-    (prog (def dove 1) (add 1 dove))
-)
+(mul 12 (add 1 1))
 `
 
 /*

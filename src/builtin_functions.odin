@@ -1,34 +1,30 @@
 package main
-// 
-// import "core:fmt"
-// import "core:os"
-// import "core:strings"
-// import "core:mem"
-// import "core:unicode/utf8"
-// 
-// builtin_add :: proc(args : []Object) -> Object {
-	// result : f64 = 0;
-	// for arg in args {
-		// assert(arg.type == .Number,
-			   // fmt.tprintf("Invalid argument: {}", arg));
-		// value := arg.value.(f64);
-		// result += value;
-	// }
-// 	
-	// return Object{.Number, result};
-// }
-// builtin_mul :: proc(param : []Object) -> Object {
-	// // result :f64= 1;
-	// // p := param;
-	// // for p != nil {
-		// // v := eval_tree(p);
-		// // assert(v.type == .Number);
-		// // result *= v.value.(f64);
-		// // p = p.next;
-	// // }
-	// // return build_object(.Number, result);
-	// return Object{.Number, 16};
-// }
+
+import "core:fmt"
+import "core:os"
+import "core:strings"
+import "core:mem"
+import "core:unicode/utf8"
+
+builtin_add :: proc(args : []Object, env: ^Environment) -> Object {
+	result : f64 = 0;
+	for arg in args {
+		assert(arg.type == .Number,
+			   fmt.tprintf("Invalid argument: {}", arg));
+		value := arg.value.(f64);
+		result += value;
+	}
+	
+	return Object{.Number, result};
+}
+builtin_mul :: proc(args : []Object, env: ^Environment) -> Object {
+	result :f64= 1;
+	for arg in args {
+		assert(arg.type == .Number);
+		result *= arg.value.(f64);
+	}
+	return Object{.Number, result};
+}
 // // builtin_sub :: proc(param : ^Object) -> Object {
 	// // if param == nil { return build_object(.Number, 0); }
 // // 

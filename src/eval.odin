@@ -12,9 +12,34 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		list := tree.value.(List).data[:];
         assert(list[0].type == .Symbol, "Invalid symbol.")
 
-		symbol := list[0].value.(string);
+		symbol_name := list[0].value.(string);
+
+		function_symbol, ok := env_resolve(env, symbol_name);
+
+		if !ok {
+			fmt.printf("Error! invalid symbol: %s.\n", symbol_name);
+			return Object{};
+		}
+		if function_symbol.type != .Function {
+			fmt.printf("Error! symbol: %s is not a function.\n", symbol_name);
+			return Object{};
+		}
+
+		function := function_symbol.value.(^Function);
+
+		if function.type == .BuiltIn {
+			process := function.body.(BuiltInFunction);
+			args := make([dynamic]Object, 0, len(list) - 1);
+			defer delete(args);
+			for ind in 1..<len(list) {
+				append(&args, eval_tree(list[ind], env));
+			}
+			return process(args[:], function.env);
+		} else if function.type == .Default {
+			return Object{};
+		}
 		
-		if symbol == "add" {// @Temporary: Should be function calling later.
+		if symbol_name == "add" {// @Temporary: Should be function calling later.
 			result : f64 = 0;
 			for e in list[1:] {
 				evaled := eval_tree(e, env);
@@ -22,7 +47,7 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 				result += evaled.value.(f64);
 			}
 			return Object{.Number, result};
-		} else if symbol == "prog" {
+		} else if symbol_name == "prog" {
 			result := Object{.Nil, nil};
 			subenv := env_make(env);
 			defer env_destroy(subenv);
@@ -30,13 +55,13 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 				result = eval_tree(prog, subenv);
 			}
 			return result;
-		} else if symbol == "def" {
+		} else if symbol_name == "def" {
 			// TOTO(Dove): args check
 			name := list[1].value.(string);
 			obj := obj_copy(eval_tree(list[2], env), true);
 			env_define(env, name, obj);
 			return obj;
-		} else if symbol == "list" {
+		} else if symbol_name == "list" {
 			sublist_data := make([dynamic]Object);
 			for arg in list[1:] {
 				evaled := eval_tree(arg, env);

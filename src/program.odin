@@ -20,8 +20,8 @@ prog_init_program :: proc(allocator := context.allocator) {
     global = env_make(nil, allocator);
 
     // Register built-in functions.
-	// reg_function("add", builtin_add);
-	// reg_function("mul", builtin_mul);
+	reg_function("add", builtin_add, global);
+	reg_function("mul", builtin_mul, global);
 	// reg_function("sub", builtin_sub);
 	// reg_function("div", builtin_div);
 	// reg_function("prog", builtin_prog);
@@ -34,32 +34,28 @@ prog_init_program :: proc(allocator := context.allocator) {
 prog_release_program :: proc() {
 	env_destroy(program.global);
 }
-// 
-// prog_get_symbol :: proc(tree : ^Object) -> (obj : Object, ok : bool) #optional_ok  {
-	// assert(tree.type == .Symbol);
-	// return program.symbols[tree.value.(string)];
-// }
-// 
-// reg_function_default :: proc(name: string, proc_node : ^Object) {
+
+reg_function_default :: proc(name: string, proc_node : Object, env: ^Environment) {
+	// TODO(Dove): reg_function_default
 	// using program;
 	// function := new(Function);
 	// function.type = .Default;
 	// function.data = proc_node;
 	// append(&functions, function);
 	// symbols[name] = build_object(.Function, function);
-// }
-// reg_function_builtin :: proc(name: string, process : BuiltInFunction) {
-	// using program;
-	// function := new(Function);
-	// function.type = .BuiltIn;
-	// function.data = process;
-	// append(&functions, function);
-	// symbols[name] = build_object(.Function, function);
-// }
-// reg_function :: proc {
-	// reg_function_default,
-	// reg_function_builtin,
-// }
+}
+reg_function_builtin :: proc(name: string, process : BuiltInFunction, env: ^Environment) {
+	using program;
+	func := new(Function);
+	func.type = .BuiltIn;
+	func.body = process;
+	func.env = env;
+	env_define(env, name, Object{.Function, func});
+}
+reg_function :: proc {
+	reg_function_default,
+	reg_function_builtin,
+}
 // 
 // reg_alias :: proc(name: string, proto_name : string) {
 	// using program;
