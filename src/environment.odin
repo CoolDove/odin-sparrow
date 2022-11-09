@@ -11,16 +11,17 @@ Environment :: struct {
 	parent : ^Environment,
 }
 
-env_make_with_map :: proc(init_map: map[string]Object, allocator := context.allocator) -> ^Environment {
+env_make_with_map :: proc(init_map: map[string]Object, parent : ^Environment = nil, allocator := context.allocator) -> ^Environment {
 	context.allocator = allocator;
 	env := new(Environment);
 	env.data = make(map[string]Object, 32);
 	return env;
 }
-env_make_empty :: proc(allocator := context.allocator) -> ^Environment {
+env_make_empty :: proc(parent : ^Environment = nil, allocator := context.allocator) -> ^Environment {
 	context.allocator = allocator;
 	env := new(Environment);
 	env.data = make(map[string]Object, 32);
+	env.parent = parent;
 	return env;
 }
 
@@ -30,14 +31,14 @@ env_make :: proc {
 }
 
 env_destroy :: proc(using env : ^Environment) {
-	{
-	    delete(data);
-	}
+	delete(data);
 }
 
 env_resolve :: proc(using env: ^Environment, name: string) -> (obj: Object, ok: bool) #optional_ok {
 	if name in data {
 		return data[name], true;
+	} else if parent != nil {
+		return env_resolve(env, name);
 	} else {
 	    return Object{}, false;
 	}

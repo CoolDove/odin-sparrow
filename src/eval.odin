@@ -22,16 +22,22 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 				result += evaled.value.(f64);
 			}
 			return Object{.Number, result};
+		} else if symbol == "prog" {
+			result := Object{.Nil, nil};
+			subenv := env_make(env);
+			defer env_destroy(subenv);
+			for prog in list[1:] {
+				result = eval_tree(prog, subenv);
+			}
+			return result;
 		} else if symbol == "def" {
+			// TOTO(Dove): args check
 			name := list[1].value.(string);
-			// TODO(Dove): Should be a `copy_obj` function instead of `list[2]`.
 			obj := obj_copy(eval_tree(list[2], env), true);
-
 			env_define(env, name, obj);
 			return obj;
 		} else if symbol == "list" {
 			sublist_data := make([dynamic]Object);
-
 			for arg in list[1:] {
 				evaled := eval_tree(arg, env);
 				append(&sublist_data, evaled);

@@ -7,31 +7,17 @@ import "core:mem"
 import "core:unicode/utf8"
 
 
-// BuiltInFunction :: proc(tree: []Object)->Object;
-// 
-// Function :: struct {
-	// type : FuncType,
-	// body : union {
-		// Object, BuiltInFunction
-	// }
-// }
-// 
-// FuncType :: enum {
-	// BuiltIn, Default
-// }
-// 
 // @Program
 SparrowProgram :: struct {
     global : ^Environment,
 }
-
 
 // Global program object.
 program : SparrowProgram;
 
 prog_init_program :: proc(allocator := context.allocator) {
 	using program;
-    global = env_make(allocator);
+    global = env_make(nil, allocator);
 
     // Register built-in functions.
 	// reg_function("add", builtin_add);

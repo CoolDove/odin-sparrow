@@ -22,6 +22,20 @@ ObjectValue :: union #align 4 {
 	List
 }
 
+BuiltInFunction :: proc(tree: []Object, env: ^Environment)->Object;
+
+Function :: struct {
+	type : FuncType,
+	body : union {
+		Object, BuiltInFunction// The `Object` is usually a list(protected).
+	},
+	env : ^Environment
+}
+
+FuncType :: enum {
+	BuiltIn, Default
+}
+
 List :: struct {
 	data : [dynamic]Object,
 	protected : bool

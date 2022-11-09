@@ -44,16 +44,18 @@ sparrow :: proc() {
 }
 
 test_source :: `
-(def dove (list 1 2))
-;; this is a comment
+(prog
+    (def dove 2)
+    (prog (def dove 1) (add 1 dove))
+)
 `
 
 /*
 
-(define (hello-world)
-    ()
-)
-(def hello (a b) (prog (add 1 2) (add 2 3)))
-
+// !FIXME(Dove): Comment parsing failed
+(prog
+    (def dove 2)
+    (prog (def dove 1) (add 1 dove))
+);this comment is badly parsed
 
 */
