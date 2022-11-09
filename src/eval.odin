@@ -49,6 +49,7 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 
 		obj_destroy(tree);// If protected, cannot destroy.
 
+		return Object{.Nil, nil};
 	case .Number:
 		return Object{ .Number, tree.value.(f64) };
 	case .Symbol:

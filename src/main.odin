@@ -5,6 +5,9 @@ import "core:os"
 import "core:strings"
 import "core:unicode/utf8"
 
+
+// !FIXME(Dove): Comment parsing failed
+
 main :: proc () {
 	sparrow();
 }
@@ -52,10 +55,5 @@ test_source :: `
 
 /*
 
-// !FIXME(Dove): Comment parsing failed
-(prog
-    (def dove 2)
-    (prog (def dove 1) (add 1 dove))
-);this comment is badly parsed
 
 */
