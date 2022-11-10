@@ -51,11 +51,14 @@ test_source :: `
 (prog
     (def PI 3.14159)
 
-    (def circle-area (radius)
-        (mul PI radius radius)
-    )
+	(def circle-area (radius)
+		(mul PI radius radius)
+	)
 
-    (circle-area 2)
+    (prog
+        (def Ra 4)
+	    (circle-area 2)
+    )
 )
 `
 

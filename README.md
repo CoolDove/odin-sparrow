@@ -47,7 +47,9 @@
 - Bind functions in c language lib
 
 ## Doing
-- [ ] Better way to pass in args while calling functions.(pre-define symbols in environment). Maybe another function type should be added for va_args.
+- [x] Fix the problem of function calling environment.
+
+- [x] Better way to pass in args while calling functions.(pre-define symbols in environment). Maybe another function type should be added for va_args.
 - [ ] Error logging based on Error type Object.
 - [ ] obj_destroy for Function object
 - [ ] Add AST struct.

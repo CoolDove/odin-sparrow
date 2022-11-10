@@ -53,8 +53,8 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		defer delete(args);
 
 		for ind in 1..<len(list) {
-			// append(&args, eval_tree(list[ind], env));
-			append(&args, list[ind]);
+			append(&args, eval_tree(list[ind], env));
+			// append(&args, list[ind]);
 		}
 
 		// NOTE(Dove): Function Calling Environment
