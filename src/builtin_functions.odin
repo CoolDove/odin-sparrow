@@ -25,6 +25,20 @@ builtin_mul :: proc(args : []Object, env: ^Environment) -> Object {
 	}
 	return Object{.Number, result};
 }
+
+// @Temporary: To test named args.
+builtin_two_add :: proc(args : []Object, env: ^Environment) -> Object {
+    a, ok0 := env_resolve(env, "a");
+	assert(ok0, fmt.tprintf("Undefined param: x\n"));
+    b, ok1 := env_resolve(env, "b");
+	assert(ok1, fmt.tprintf("Undefined param: b\n"));
+	assert(a.type == .Number && b.type == .Number, "Invalid arguments, should be (a:number, b:number)");
+	
+	result := a.value.(f64) + b.value.(f64);
+	return Object{.Number, result};
+}
+
+
 // // builtin_sub :: proc(param : ^Object) -> Object {
 	// // if param == nil { return build_object(.Number, 0); }
 // // 

@@ -34,8 +34,8 @@ sparrow :: proc() {
 	// show_tokens(parser);
 
 	print_label("Abstract Syntax Tree");
-	tree, result := parse(parser);
-	if result.type == .Good {
+	tree, parse_result := parse(parser);
+	if parse_result.type == .Good {
 	    show_tree(&tree);
 	} else {
 		fmt.println("failed to parse");
@@ -43,14 +43,19 @@ sparrow :: proc() {
 	}
 
 	// print_label("Eval");
-	fmt.println(eval_tree(tree, program.global));
+	eval_result := eval_tree(tree, program.global);
+	fmt.println(eval_result);
 }
 
 test_source :: `
-(mul 12 (add 1 1))
+(two-add 12 3)
 `
 
 /*
-
-
+(prog
+	(def add (a b #va_args)
+		(print va_args)
+	)
+    (add print "hello, world")
+)
 */

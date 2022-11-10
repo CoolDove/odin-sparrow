@@ -17,15 +17,20 @@ ObjectType :: enum {
 ObjectValue :: union #align 4 {
 	f64,        // Number
 	string,     // String / SymbolName
-	// i64,        // maybe some value
 	^Function,
 	List
 }
 
+// NOTE(Dove): Function Calling Convention
+// Built-in functions usually use va_args, but that has not been implemented,
+// `tree: []Object` is used as a temporary solution for va_args.
+// After va_args is implemented, `tree: []Object` should be removed,
+// and all va_args-function should get the args from its environment.
 BuiltInFunction :: proc(tree: []Object, env: ^Environment)->Object;
 
 Function :: struct {
 	type : FuncType,
+	params : [dynamic]string,
 	body : union {
 		Object, BuiltInFunction// The `Object` is usually a list(protected).
 	},
@@ -57,7 +62,7 @@ obj_list_data :: proc(obj: ^Object) -> []Object {
 // NOTION! List which stored in a symbol is protected, couldn't be deleted.
 // That is marked in the eval function.
 
-// TODO(Dove): `obj_destroy`, Function also need to be destroied.
+// TODO(Dove): `obj_destroy` is to destroy List/Function object's inner buffer.
 obj_destroy :: proc(obj: Object, force := false) {
 	if obj.type != .List {return;}
 	list := obj.value.(List);
@@ -66,8 +71,7 @@ obj_destroy :: proc(obj: Object, force := false) {
 	}
 }
 
-// NOTE(Dove): `obj_copy`
-// Main target is to copy the List type object. Its inside buffer should be copied.
+// NOTE(Dove): `obj_copy` is to copy the List/Function type object. Its inner buffer should be copied.
 obj_copy :: proc(obj: Object, copy_as_protected := false, allocator := context.allocator) -> Object {
 	// assert(false, "Not Implemented");
 	switch obj.type {

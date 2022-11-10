@@ -38,7 +38,7 @@ env_resolve :: proc(using env: ^Environment, name: string) -> (obj: Object, ok: 
 	if name in data {
 		return data[name], true;
 	} else if parent != nil {
-		return env_resolve(env, name);
+		return env_resolve(parent, name);
 	} else {
 	    return Object{}, false;
 	}

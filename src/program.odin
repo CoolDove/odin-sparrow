@@ -6,7 +6,6 @@ import "core:strings"
 import "core:mem"
 import "core:unicode/utf8"
 
-
 // @Program
 SparrowProgram :: struct {
     global : ^Environment,
@@ -20,8 +19,10 @@ prog_init_program :: proc(allocator := context.allocator) {
     global = env_make(nil, allocator);
 
     // Register built-in functions.
-	reg_function("add", builtin_add, global);
-	reg_function("mul", builtin_mul, global);
+	reg_function("add", builtin_add, global, "#va_args");
+	reg_function("mul", builtin_mul, global, "#va_args");
+	reg_function("two-add", builtin_two_add, global, "a", "b");
+
 	// reg_function("sub", builtin_sub);
 	// reg_function("div", builtin_div);
 	// reg_function("prog", builtin_prog);
@@ -35,7 +36,7 @@ prog_release_program :: proc() {
 	env_destroy(program.global);
 }
 
-reg_function_default :: proc(name: string, proc_node : Object, env: ^Environment) {
+reg_function_default :: proc(name: string, body : Object, env: ^Environment, params : ..string) {
 	// TODO(Dove): reg_function_default
 	// using program;
 	// function := new(Function);
@@ -44,31 +45,28 @@ reg_function_default :: proc(name: string, proc_node : Object, env: ^Environment
 	// append(&functions, function);
 	// symbols[name] = build_object(.Function, function);
 }
-reg_function_builtin :: proc(name: string, process : BuiltInFunction, env: ^Environment) {
+
+reg_function_builtin :: proc(name: string, process : BuiltInFunction, env: ^Environment, params : ..string) {
 	using program;
 	func := new(Function);
 	func.type = .BuiltIn;
+	func.params = make_params(params[:]);
 	func.body = process;
 	func.env = env;
 	env_define(env, name, Object{.Function, func});
 }
+
+@(private="file")
+make_params :: proc(names: []string, allocator:= context.allocator) -> [dynamic]string {
+	context.allocator = allocator;
+	params := make([dynamic]string, 0, len(names));
+	for name in names {
+		append(&params, name);
+	}
+	return params;
+}
+
 reg_function :: proc {
 	reg_function_default,
 	reg_function_builtin,
 }
-// 
-// reg_alias :: proc(name: string, proto_name : string) {
-	// using program;
-	// if proto_name in symbols {
-        // symbols[name] = symbols[proto_name];
-	// }
-// }
-// 
-// 
-// set_variable :: proc(name: string, value: Object) {
-    // program.symbols[name] = value;
-// }
-// delete_variable :: proc(name: string) {
-    // symb, ok := program.symbols[name];
-	// if ok { delete_key(&program.symbols, name); }
-// }

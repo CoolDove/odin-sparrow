@@ -1,8 +1,8 @@
 ## This is a lisp interpreter made in odin-lang.
 
+# SYNTAX
 
-
-## syntax like
+## basic
 
 ```lisp
 (prog
@@ -12,11 +12,30 @@
 	)
 
     (dove/add 12 13)
-
 )
-(def-fun main)
 
 ```
+
+## Deal with VA_ARGS
+```lisp
+
+(prog
+    (def dove/multiple-add (a #va_args)
+	    (def result 0)
+		(foreach i #va_args
+		    (set result (dove/add result i))
+		)
+		result
+	)
+
+    (dove/multiple-add 1 2 3 4)
+)
+
+```
+
+
+
+
 
 ## Progress
 - Tokenize and parser, get a AST from source code.
@@ -29,6 +48,7 @@
 
 ## Doing
 - [ ] Better way to pass in args while calling functions.(pre-define symbols in environment). Maybe another function type should be added for va_args.
+- [ ] Error logging based on Error type Object.
 - [ ] obj_destroy for Function object
 - [ ] Add AST struct.
 - [ ] !! Write a copy map.
