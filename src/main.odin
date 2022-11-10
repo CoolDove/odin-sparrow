@@ -49,12 +49,13 @@ sparrow :: proc() {
 
 test_source :: `
 (prog
-    (def dove-out 12)
-    (def dove 20)
-    (prog
-        ;(def dove 3)
-        (add dove dove-out)
+    (def PI 3.14159)
+
+    (def circle-area (radius)
+        (mul PI radius radius)
     )
+
+    (circle-area 2)
 )
 `
 

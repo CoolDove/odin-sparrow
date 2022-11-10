@@ -19,9 +19,9 @@ prog_init_program :: proc(allocator := context.allocator) {
     global = env_make(nil, allocator);
 
     // Register built-in functions.
-	reg_function("add", builtin_add, global, "#va_args");
-	reg_function("mul", builtin_mul, global, "#va_args");
-	reg_function("two-add", builtin_two_add, global, "a", "b");
+	reg_function("add", builtin_add, "#va_args");
+	reg_function("mul", builtin_mul, "#va_args");
+	reg_function("two-add", builtin_two_add, "a", "b");
 
 	// reg_function("sub", builtin_sub);
 	// reg_function("div", builtin_div);
@@ -46,14 +46,14 @@ reg_function_default :: proc(name: string, body : Object, env: ^Environment, par
 	// symbols[name] = build_object(.Function, function);
 }
 
-reg_function_builtin :: proc(name: string, process : BuiltInFunction, env: ^Environment, params : ..string) {
+reg_function_builtin :: proc(name: string, process : BuiltInFunction, params : ..string) {
 	using program;
 	func := new(Function);
 	func.type = .BuiltIn;
 	func.params = make_params(params[:]);
 	func.body = process;
-	func.env = env;
-	env_define(env, name, Object{.Function, func});
+	func.env = nil;
+	env_define(global, name, Object{.Function, func});
 }
 
 @(private="file")

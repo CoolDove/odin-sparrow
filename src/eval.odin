@@ -49,50 +49,38 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		function := function_symbol.value.(^Function);
 
 		// Function call
+		args := make([dynamic]Object, 0, len(list) - 1);
+		defer delete(args);
+
+		for ind in 1..<len(list) {
+			// append(&args, eval_tree(list[ind], env));
+			append(&args, list[ind]);
+		}
+
+		// NOTE(Dove): Function Calling Environment
+		// `function.env` is the env where the function is defined.
+		// Create a new environment for the function's inner calculation.
+
+		// `function.env == nil` means it's a built-in function
+		parent_env := function.type == .BuiltIn ? env : function.env;
+		funcenv := env_make(parent_env);
+		defer env_destroy(funcenv);
+		pass_args_into_environment(funcenv, args[:], function.params[:]);
+
 		if function.type == .BuiltIn {
 			process := function.body.(BuiltInFunction);
-
-			args := make([dynamic]Object, 0, len(list) - 1);
-			defer delete(args);
-
-			for ind in 1..<len(list) {
-				append(&args, eval_tree(list[ind], env));
-			}
-
-			// NOTE(Dove): Function Calling Environment
-			// `function.env` is the env where the function is defined.
-			// Create a new environment for the function's inner calculation.
-			funcenv := env_make(function.env);
-			defer env_destroy(funcenv);
-
-			pass_args_into_environment(funcenv, args[:], function.params[:]);
 			return process(args[:], funcenv);
 		} else if function.type == .Default {
-			return Object{};
+			body := function.body.(Object);
+			return eval_tree(body, funcenv);
 		}
 		
-		// if symbol_name == "add" {// @Temporary: Should be function calling later.
-			// result : f64 = 0;
-			// for e in list[1:] {
-				// evaled := eval_tree(e, env);
-				// assert(evaled.type == .Number, "Invalid type");
-				// result += evaled.value.(f64);
-			// }
-			// return Object{.Number, result};
-		// } else if symbol_name == "prog" {
-		// } else if symbol_name == "def" {
-			// // TOTO(Dove): args check
-			// name := list[1].value.(string);
-			// obj := obj_copy(eval_tree(list[2], env), true);
-			// env_define(env, name, obj);
-			// return obj;
 		// } else if symbol_name == "list" {
 			// sublist_data := make([dynamic]Object);
 			// for arg in list[1:] {
 				// evaled := eval_tree(arg, env);
 				// append(&sublist_data, evaled);
 			// }
-// 
 			// sublist := List{sublist_data, false};
 			// return Object{.List, sublist};
 		// }
@@ -128,7 +116,33 @@ define_variable :: proc (env: ^Environment, args: []Object) -> Object {
 	return obj;
 }
 define_function :: proc (env: ^Environment, args: []Object) -> Object {
-	return Object{};
+    assert(args[0].type == .Symbol, fmt.tprintf("Invalid symbol: {}\n", args[0]));
+	assert(args[1].type == .List, "Params list should be a list.");
+	params_obj := args[1].value.(List).data;
+	for param in params_obj {
+		assert(param.type == .Symbol, fmt.tprintf("Invalid symbol: {}\n", param));
+	}
+
+	// args[0]: Symbol, function name
+	// args[1]: List of Symbol, function params
+	// args[2]: Any, function body
+	
+	function := new(Function);
+	function.type = .Default;
+	param_list := args[1].value.(List);
+	params := make([dynamic]string, 0, len(param_list.data));
+	for p in param_list.data {
+		param_name := p.value.(string);
+		append(&params, param_name);
+	}
+	function.params = params;
+	function.body = obj_copy(args[2], true);
+	function.env = env;
+
+	function_obj := Object{.Function, function};
+	env_define(env, args[0].value.(string), function_obj);
+	
+	return function_obj;
 }
 // 
 // 
