@@ -6,12 +6,12 @@
 
 ```lisp
 (prog
-	(def dove/add (a b)
-		"an optional description"
-		(add a b)
-	)
-
-    (dove/add 12 13)
+    (def PI 3.14159)
+    (def circle-area (radius)
+        (mul PI radius radius)
+    )
+    (def diameter 4)
+    (circle-area (mul diameter 0.5))
 )
 
 ```
@@ -20,22 +20,13 @@
 ```lisp
 
 (prog
-	(prog
-		(def PI 3.14159)
-		(def circle-area (radius)
-			(mul PI radius radius)
-		)
-		(def diameter 4)
-		(circle-area (mul diameter 0.5))
-	)
-
     (def multiple-add (a #va_args)
-	    (def result 0)
-		(foreach i #va_args
-		    (set result (dove/add result i))
-		)
-		result
-	)
+        (def result 0)
+        (foreach i #va_args ;; maybe...
+            (set result (dove/add result i))
+        )
+        result
+    )
 )
 
 ```
