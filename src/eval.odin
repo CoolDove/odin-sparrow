@@ -15,6 +15,26 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 
 		symbol_name := list[0].value.(string);
 
+        if symbol_name == "def" {
+			args_len := len(list[1:]);
+			if args_len == 2 {
+				return define_variable(env, list[1:]);
+			} else if args_len == 3 {
+				return define_function(env, list[1:]);
+			} else {
+				return Object{};
+			}
+		}
+		if symbol_name == "prog" {
+			result := Object{.Nil, nil};
+			subenv := env_make(env);
+			defer env_destroy(subenv);
+			for prog in list[1:] {
+				result = eval_tree(prog, subenv);
+			}
+			return result;
+		}
+
 		function_symbol, ok := env_resolve(env, symbol_name);
 
 		if !ok {
@@ -60,13 +80,6 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 			// }
 			// return Object{.Number, result};
 		// } else if symbol_name == "prog" {
-			// result := Object{.Nil, nil};
-			// subenv := env_make(env);
-			// defer env_destroy(subenv);
-			// for prog in list[1:] {
-				// result = eval_tree(prog, subenv);
-			// }
-			// return result;
 		// } else if symbol_name == "def" {
 			// // TOTO(Dove): args check
 			// name := list[1].value.(string);
@@ -83,9 +96,6 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 			// sublist := List{sublist_data, false};
 			// return Object{.List, sublist};
 		// }
-
-		// obj_destroy(tree);
-
 		return Object{.Nil, nil};
 	case .Number:
 		return Object{ .Number, tree.value.(f64) };
@@ -102,17 +112,28 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 @(private="file")
 pass_args_into_environment :: proc(env: ^Environment, args: []Object, params: []string) -> bool {
 	args_length := len(args);
+	params_length := len(params);
 	for i in 0..<args_length {
-		env_define(env, params[i], args[i]);
+		if i < params_length {
+		    env_define(env, params[i], args[i]);
+		}
 	}
 	return true;
 }
 
-
+define_variable :: proc (env: ^Environment, args: []Object) -> Object {
+	name := args[0].value.(string);
+	obj := obj_copy(eval_tree(args[1], env), true);
+	env_define(env, name, obj);
+	return obj;
+}
+define_function :: proc (env: ^Environment, args: []Object) -> Object {
+	return Object{};
+}
 // 
 // 
-// @(private="file")
-// _eval_list :: proc(using tree : ^Object) -> Object {
+// @(private="file :: proc ")
+// _eval: ^Environment_list :: proc(using tree : ^Object) -> Object {
 	// assert(tree.type == .List);
 // 
 	// list := tree.value.(List);

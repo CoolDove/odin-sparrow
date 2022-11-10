@@ -38,7 +38,6 @@ builtin_two_add :: proc(args : []Object, env: ^Environment) -> Object {
 	return Object{.Number, result};
 }
 
-
 // // builtin_sub :: proc(param : ^Object) -> Object {
 	// // if param == nil { return build_object(.Number, 0); }
 // // 
