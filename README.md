@@ -20,22 +20,25 @@
 ```lisp
 
 (prog
-    (def dove/multiple-add (a #va_args)
+	(prog
+		(def PI 3.14159)
+		(def circle-area (radius)
+			(mul PI radius radius)
+		)
+		(def diameter 4)
+		(circle-area (mul diameter 0.5))
+	)
+
+    (def multiple-add (a #va_args)
 	    (def result 0)
 		(foreach i #va_args
 		    (set result (dove/add result i))
 		)
 		result
 	)
-
-    (dove/multiple-add 1 2 3 4)
 )
 
 ```
-
-
-
-
 
 ## Progress
 - Tokenize and parser, get a AST from source code.
@@ -46,19 +49,14 @@
 - Has `main` proc
 - Bind functions in c language lib
 
-## Doing
-- [x] Fix the problem of function calling environment.
+## TODO
 
-- [x] Better way to pass in args while calling functions.(pre-define symbols in environment). Maybe another function type should be added for va_args.
-- [ ] Error logging based on Error type Object.
-- [ ] obj_destroy for Function object
+- [ ] Code Clean & Restructure.
+- [ ] Function destroying.
 - [ ] Add AST struct.
-- [ ] !! Write a copy map.
-- [x] !!! Research odin mem things, make a `obj_copy`, this is important. It should recursively copy an object(together with its children, that's what `recursively` means) to another one, with a specified allocator.
-- [x] obj_destroy
-
-## Todo
-- [ ] default function reg/call
-- [ ] add object type: boolean
-- [x] parsing: comment, use `;` to start a comment(till the line end)
-
+- [ ] Polish tokenizer and parser.
+	- [ ] Take #-prefixed symbol as builtin symbol, like #va_args, #number, #string, #nil, #symbol
+	- [ ] Tokenize `*+-/<>` as symbols.
+- [ ] Flow Control(if, for...).
+- [ ] String Operations.
+- [ ] Error Object.

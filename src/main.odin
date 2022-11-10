@@ -42,7 +42,7 @@ sparrow :: proc() {
 		return;
 	}
 
-	// print_label("Eval");
+	print_label("Result");
 	eval_result := eval_tree(tree, program.global);
 	fmt.println(eval_result);
 }
@@ -50,15 +50,11 @@ sparrow :: proc() {
 test_source :: `
 (prog
     (def PI 3.14159)
-
-	(def circle-area (radius)
-		(mul PI radius radius)
-	)
-
-    (prog
-        (def Ra 4)
-	    (circle-area 2)
+    (def circle-area (radius)
+        (mul PI radius radius)
     )
+    (def diameter 4)
+    (circle-area (mul diameter 0.5))
 )
 `
 
