@@ -21,7 +21,7 @@ parser_make :: proc(source:string, allocator := context.allocator) -> ^Parser {
 	p := new(Parser, allocator);
 	{
 		using p;
-		runes = utf8.string_to_runes(test_source, allocator);
+		runes = utf8.string_to_runes(source, allocator);
 		tokens = make([dynamic]Token, allocator);
 		_allocated_by = allocator;
 	}
@@ -43,7 +43,9 @@ parse :: proc(using parser : ^Parser, using ast : ^AST) -> ParseResult {
 	if tokenized {
 		// tree : Object;
 		// consumed : int;
-		tree, consumed := parse_list(parser, ast, 0);
+
+		tree, consumed := parse_exp(parser, ast, 0);
+
 		if consumed == 0 {
 			ast.root = Object{};
 			return ParseResult{.Bad, "failed to parse"};
@@ -56,6 +58,19 @@ parse :: proc(using parser : ^Parser, using ast : ^AST) -> ParseResult {
 	return ParseResult{.Bad, "failed to tokenize"};
 }
 
+
+parse_exp :: proc(using parser : ^Parser, using ast : ^AST, tokptr : int) -> (Object, int) {
+	tptr := tokptr;
+	tok  := tokens[tptr];
+
+	node     := Object{};
+	consumed : int    = ---;
+	node, consumed = parse_value(parser, ast, tptr);
+	if consumed == 0 {
+	    node, consumed = parse_list(parser, ast, tptr);
+	}
+	return node, consumed;
+}
 // NOTE:
 // `parse_` prefixed functions take a tokptr to fetch token from the parser.
 // The return value is consumed tokens count, should be added to tokptr.

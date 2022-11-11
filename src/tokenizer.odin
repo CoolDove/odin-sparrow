@@ -85,6 +85,9 @@ parser_next_token :: proc(using parser : ^Parser, using tctx : ^TokenizeContext)
 
 		token_buffer_ptr += 1;
 		ptr += 1;
+		if ptr >= len(runes) {
+			break;
+		}
 		current = runes[ptr];
         is_first_in_symbol = false;
 	}
@@ -153,6 +156,7 @@ token_get_number :: proc(using parser:^Parser, using tctx : ^TokenizeContext) ->
 	
 	point := false;
 	for {
+		if ptr >= len(runes) { break; }
 	    current := runes[ptr];
 		if rune_is_number(current) {
 			strings.write_rune(&builder, current);

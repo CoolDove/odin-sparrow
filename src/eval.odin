@@ -34,6 +34,12 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 				result = eval_tree(prog, subenv);
 			}
 			return result;
+		} else if symbol_name == "begin" {
+			result := Object{.Nil, nil};
+			for prog in list[1:] {
+				result = eval_tree(prog, env);
+			}
+			return result;
 		}
 
 		function_symbol, ok := env_resolve(env, symbol_name);

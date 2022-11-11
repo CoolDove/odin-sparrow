@@ -25,13 +25,37 @@ sparrow :: proc() {
 	print_label("Source");
 	fmt.println(test_source);
 
-	base := prog_eval_source(test_source, program);
+	base_eval := prog_eval_source(test_source, program);
+	fmt.println("base eval: ", base_eval);
 
-	fmt.println("base eval: ", base);
+	for {
+        fmt.printf("\nREPL> ");
+        repl_buf: [2048]u8;
+        read_size, read_err := os.read(os.stdin, repl_buf[:]);
+
+		input := strings.trim_suffix(string(repl_buf[:read_size]), "\r\n");
+        read_size = len(input);
+
+		if read_size == 0 || (read_size == 1 && repl_buf[0] == 4) {
+		    break;
+	    }
+
+		switch read_err {
+	    case 0, 6:// correct input
+			eval := prog_eval_source(input, program);
+			fmt.println(eval);
+		case 995:
+			break;
+		case :
+			break;
+		}
+	}
+	fmt.println("");
+	
 }
 
 test_source :: `
-(prog
+(begin
     (def PI 3.14159)
     (def circle-area (radius)
         (mul PI radius radius)

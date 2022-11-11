@@ -46,6 +46,7 @@
 - [x] Function destroying.
 - [x] Add AST struct.
 - [ ] Interact mode
+- [ ] va_args
 - [ ] Polish tokenizer and parser.
 	- [ ] Take #-prefixed symbol as builtin symbol, like #va_args, #number, #string, #nil, #symbol
 	- [ ] Tokenize `*+-/<>` as symbols.
