@@ -51,10 +51,30 @@ prog_release_program :: proc(using prog : ^SparrowProgram) {
 prog_eval_source :: proc(source: string, using prog : ^SparrowProgram) -> Object {
 	parser := parser_make(source);
 	defer parser_release(parser);
-	ast := ast_make();
-	parse(parser, ast);
-	append(&trees, ast);
-	return eval_tree(ast.root, program.global);
+	last := Object{};
+	consumed := 0;
+	fmt.printf(": ");
+	for {
+	    ast := ast_make();
+	    result, parsed := parse(parser, ast, consumed);
+        fmt.printf("[{}, {}] ", consumed, consumed + parsed);
+		consumed += parsed;
+
+		if result.type == .Bad {
+			return Object{.Nil, nil};
+		} else {
+			append(&trees, ast);
+			last = eval_tree(ast.root, program.global);
+			// fmt.println("****", last);
+			if result.type == .End {
+				break;
+			}
+		}
+	}
+
+    fmt.printf(" of {}\n", len(parser.tokens));
+   
+	return last;
 }
 
 // Only register built-in functions.

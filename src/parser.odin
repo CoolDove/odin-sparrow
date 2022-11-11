@@ -36,25 +36,29 @@ parser_release :: proc(using parser:^Parser) {
 	free(parser);
 }
 
-parse :: proc(using parser : ^Parser, using ast : ^AST) -> ParseResult {
+parse :: proc(using parser : ^Parser, using ast : ^AST, start_from: int) -> (ParseResult, int) {
 	if tokenized {
-		// tree : Object;
-		// consumed : int;
-
-		tree, consumed := parse_exp(parser, ast, 0);
+		if (start_from >= len(tokens)) {
+			return ParseResult{ .End, "parse succ" }, 0;
+		}
+		tree, consumed := parse_exp(parser, ast, start_from);
 
 		if consumed == 0 {
 			ast.root = Object{};
-			return ParseResult{.Bad, "failed to parse"};
+			return ParseResult{.Bad, "failed to parse"}, 0;
 		} else {
 			ast.root = tree;
-	        return ParseResult{.Good, "parse succ"};
+			begin, end := start_from, start_from + consumed;
+			if start_from + consumed < len(tokens) {
+	            return ParseResult{.ToBeContinue, "to be continue"}, consumed;
+			} else {
+	            return ParseResult{.End, "parse succ"}, consumed;
+			}
 		}
 	}
 	ast.root = Object{};
-	return ParseResult{.Bad, "failed to tokenize"};
+	return ParseResult{.Bad, "failed to tokenize"}, 0;
 }
-
 
 parse_exp :: proc(using parser : ^Parser, using ast : ^AST, tokptr : int) -> (Object, int) {
 	tptr := tokptr;
@@ -171,5 +175,5 @@ ParseResult :: struct {
 }
 
 ParseResultType :: enum {
-	Good, Bad
+	End, ToBeContinue, Bad
 }

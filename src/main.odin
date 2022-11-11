@@ -24,7 +24,7 @@ sparrow :: proc() {
 	fmt.println(test_source);
 
 	base_eval := prog_eval_source(test_source, program);
-	fmt.println("base eval: ", base_eval);
+	fmt.printf(">>>> {}\n", base_eval);
 
 	for {
         fmt.printf("\nREPL> ");
@@ -38,10 +38,11 @@ sparrow :: proc() {
 		    break;
 	    }
 
+
 		switch read_err {
 	    case 0, 6:// correct input
 			eval := prog_eval_source(input, program);
-			fmt.println(eval);
+			fmt.printf(">>>> {}\n", eval);
 		case 995:
 			break;
 		case :
@@ -53,20 +54,20 @@ sparrow :: proc() {
 }
 
 test_source :: `
-(begin
-    ;; (def PI 3.14159)
-    ;; (def circle-area (radius)
-        ;; (mul PI radius radius)
-    ;; )
-    ;; (def diameter 4)
-    ;; (circle-area (mul diameter .5))
-
-    (def test (#va_args)
-        (item 1 #va_args)
-    )
-
-    (test 1 2 3 4)
+(def PI 3.14159)
+(def circle-area (radius)
+	(mul PI radius radius)
 )
+(def diameter 4)
+(circle-area (mul diameter .5))
+
+(def test (#va_args)
+	(item 1 #va_args)
+)
+
+(test 1 2 3 4)
+(add 1 3)
+;; this should be a '4'
 `
 
 /*

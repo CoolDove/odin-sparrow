@@ -40,6 +40,10 @@
 - Has `main` proc
 - Bind functions in c language lib
 
+## FIX
+- [ ] Cannot define empty-params function
+- [ ] Destroy object in the symbol map when it was redefined to another value.
+
 ## TODO
 
 - [x] Code Clean & Restructure.

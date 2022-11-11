@@ -121,6 +121,7 @@ pass_args_into_environment :: proc(env: ^Environment, args: []Object, params: []
 			}
 		} else {
 			fmt.println("Too much args.");
+			break;
 		}
 	}
 
