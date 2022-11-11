@@ -72,7 +72,8 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		parent_env := function.type == .BuiltIn ? env : function.env;
 		funcenv := env_make(parent_env);
 		defer env_destroy(funcenv);
-		pass_args_into_environment(funcenv, args[:], function.params[:]);
+		va_args := pass_args_into_environment(funcenv, args[:], function.params[:]);
+		defer obj_destroy(va_args);
 
 		if function.type == .BuiltIn {
 			process := function.body.(BuiltInFunction);
@@ -95,15 +96,40 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 }
 
 @(private="file")
-pass_args_into_environment :: proc(env: ^Environment, args: []Object, params: []string) -> bool {
+pass_args_into_environment :: proc(env: ^Environment, args: []Object, params: []string) -> (va_args_list : Object) {
+	// Deal with va_args here.
+	// All the params after #va_args should be ignored, or error.
+	// All the args after #va_args should be packed into a list, and defined as #va_args
 	args_length := len(args);
 	params_length := len(params);
+
+	use_va_args := false;
+	list : List;
+	list.data = make([dynamic]Object);
+	va_args_list = Object{};
+
 	for i in 0..<args_length {
-		if i < params_length {
-		    env_define(env, params[i], args[i]);
+
+		if use_va_args {
+			append(&list.data, obj_copy(args[i]));
+		} else if i < params_length {
+			if params[i] == "#va_args" {
+				use_va_args = true;
+				append(&list.data, obj_copy(args[i]));
+			} else {
+		        env_define(env, params[i], args[i]);
+			}
+		} else {
+			fmt.println("Too much args.");
 		}
 	}
-	return true;
+
+	if use_va_args {
+		va_args_list = Object{.List, list};
+		env_define(env, "#va_args", va_args_list);
+	}
+
+	return ;
 }
 
 define_variable :: proc (env: ^Environment, args: []Object) -> Object {

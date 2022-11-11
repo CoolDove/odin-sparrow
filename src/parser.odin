@@ -13,9 +13,6 @@ Parser :: struct {
 	_allocated_by   : mem.Allocator// Stores the source runes, and the tokens.
 }
 
-// NOTE(Dove): not used.
-// using ast : ^AST,
-// using parser : ^Parser,
 
 parser_make :: proc(source:string, allocator := context.allocator) -> ^Parser {
 	p := new(Parser, allocator);
@@ -158,7 +155,6 @@ show_tree :: proc(root : ^Object, ite : int = 0) {
 		for ind in 0..<len(childs) {
 			show_tree(&childs[ind], ite + 1);
 		}
-		// fmt.printf("%v|---\n", prefix_tabs);
 	case .Number:
 		fmt.printf("%v|%v\n", prefix_tabs, root.value.(f64));
 	case .Symbol:

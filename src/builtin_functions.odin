@@ -37,6 +37,19 @@ builtin_two_add :: proc(args : []Object, env: ^Environment) -> Object {
 	return Object{.Number, result};
 }
 
+// @Temporary: To test va_args;
+builtin_test_va_args :: proc(args : []Object, env: ^Environment) -> Object {
+    va_args := env_resolve(env, "#va_args");
+
+	assert(va_args.type == .List, "Invalid va_args.");
+
+	va_args_data := va_args.value.(List).data;
+	for arg in va_args_data {
+		fmt.println(arg);
+	}
+	return Object{.Nil, nil};
+}
+
 // // builtin_sub :: proc(param : ^Object) -> Object {
 	// // if param == nil { return build_object(.Number, 0); }
 // // 

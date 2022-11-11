@@ -53,3 +53,20 @@
 - [ ] Flow Control(if, for...).
 - [ ] String Operations.
 - [ ] Error Object.
+
+
+
+### Symbol rule
+
+## special 
+    +-*/
+
+## basic
+    LettersOrNumber1024
+
+## seperator
+    Can use "-_/" as seperators. But cannot used as the first rune.
+
+## prefix
+- `#` built-in symbols
+> #va_args ...

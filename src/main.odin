@@ -6,8 +6,6 @@ import "core:strings"
 import "core:unicode/utf8"
 
 
-// !FIXME(Dove): Comment parsing failed
-
 main :: proc () {
 	sparrow();
 }
@@ -62,10 +60,12 @@ test_source :: `
     )
     (def diameter 4)
     (circle-area (mul diameter 0.5))
+    ;; (test-va-args 13 "hello world" 15 16)
 )
 `
 
 /*
+
 (prog
 	(def add (a b #va_args)
 		(print va_args)

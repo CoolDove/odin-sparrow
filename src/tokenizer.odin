@@ -6,29 +6,7 @@ import "core:strings"
 import "core:strconv"
 import "core:unicode/utf8"
 
-TokenizeContext :: struct {
-	ptr : int
-}
 
-// TODO(Dove): optimize string and symbol and number by to_writer
-tokenize :: proc(using parser : ^Parser) -> TokenError {
-	if tokenized { return .None; }
-	// ptr : int = 0;
-	ctx := TokenizeContext{0};
-	length := len(runes);
-	tok := Token{.None, "just an empty token, useless"};
-	err := TokenError.None;
-	for tok.type != .End {
-		tok, err = parser_next_token(parser, &ctx);
-		if err == .None {
-            append(&tokens, tok);
-		} else {
-			return err;
-		}
-	}
-	tokenized = true;
-	return .None;
-}
 
 show_tokens :: proc(using parser : ^Parser) {
 	if !tokenized { return; }
@@ -37,94 +15,111 @@ show_tokens :: proc(using parser : ^Parser) {
 	}
 }
 
-@(private="file")
-_token_buffer : [512]rune;
+// TODO(Dove): optimize string and symbol and number by to_writer
+tokenize :: proc(using parser : ^Parser) -> TokenError {
+	if parser.tokenized { return .None; }
+	runes_length := len(runes);
 
-parser_next_token :: proc(using parser : ^Parser, using tctx : ^TokenizeContext) -> (Token, TokenError) {
-	if ptr >= cast(int)len(runes) { return Token{.End, 0}, .None; }
+	ptr := 0;
 
-	if token_consume_space(parser, tctx) == -1 { return Token{.End, 0}, .None; }
-	current := runes[ptr];
-	token_buffer_ptr := 0;
-
-	if current == ';' {// comment
-		for current != '\n' {
-			ptr += 1;
-			current = runes[ptr];
+	for {
+		for {
+			consumed_space := token_consume_space(parser, ptr);
+			consumed_comment := token_consume_comment(parser, ptr);
+		    consumed := consumed_space + consumed_comment;
+			if consumed == 0 { break; }
+		    ptr += consumed;
 		}
-		ptr += 1;
-	}
-	if token_consume_space(parser, tctx) == -1 { return Token{.End, 0}, .None; }
-	current = runes[ptr];
 
-	if current == '(' {ptr += 1; return Token{.LParen, 0}, .None; }	
-	if current == ')' {ptr += 1; return Token{.RParen, 0}, .None; }	
-	if current == ',' {ptr += 1; return Token{.Comma, 0}, .None; }	
-
-	if current == '\"' {
-		str_tok, err := token_get_string(parser, tctx);
-		if err == .None {
-			return str_tok, .None;
-		} else {
-			return Token{.None, nil}, err;
-		}
-	}
-
-	if current == '-' || rune_is_number(current) {
-		num_tok, err := token_get_number(parser, tctx);
-		if err == .None {
-			return num_tok, .None;
-		} else {
-			return Token{.None, nil}, .NumberError;
-		}
-	}
-
-	is_first_in_symbol := true;
-	for rune_is_valid_in_symbol(current, is_first_in_symbol) {
-		_token_buffer[token_buffer_ptr] = current;
-
-		token_buffer_ptr += 1;
-		ptr += 1;
-		if ptr >= len(runes) {
+		if ptr >= runes_length {
 			break;
 		}
-		current = runes[ptr];
-        is_first_in_symbol = false;
+		
+		current := runes[ptr];
+		token_buffer_ptr := 0;
+
+		if current == '(' {
+			ptr += 1;
+			append(&tokens, Token{.LParen, nil});
+			continue;
+		} else if current == ')' {
+			ptr += 1;
+			append(&tokens, Token{.RParen, nil});
+			continue;
+		} if current == ',' {	// ...Seems not very useful in sparrow.
+			ptr += 1;
+			append(&tokens, Token{.Comma, nil});
+            continue;
+		} else {
+			tok : Token;
+			local_consumed : = 0;
+
+			succ := false;
+			if current == '\"' {
+                tok, local_consumed = token_get_string(parser, ptr);
+				if local_consumed != 0 {succ = true;}
+			}
+
+			if !succ {
+				tok, local_consumed = token_get_number(parser, ptr);
+				if local_consumed != 0 {
+					succ = true;
+				} else {
+					tok, local_consumed = token_get_symbol(parser, ptr);
+				    if local_consumed != 0 {
+						succ = true;
+					}
+				}
+			}
+
+			if succ {
+				append(&tokens, tok);
+				ptr += local_consumed;
+				continue;
+			} else {
+				return .TokenError;
+			}
+		}
 	}
 
-	if token_buffer_ptr != 0 {
-	    used_token_buffer := _token_buffer[0:token_buffer_ptr];
-	    tok := Token {.Symbol, utf8.runes_to_string(used_token_buffer, context.temp_allocator)};
-	    return tok, .None;
-	} else {
-	    return Token{.None, nil}, .TokenError;
-	}
-	
+	return .None;
 }
 
 
 @(private="file")
-token_get_string :: proc(using parser:^Parser, using tctx : ^TokenizeContext) -> (Token, TokenError) {
-	rune_len := len(runes);
+token_get_string :: proc(using parser:^Parser, runeptr: int) -> (Token, int) {
 	builder := strings.builder_make(context.temp_allocator);
-	ptr += 1;// to pass the prefix quote
+	ptr := runeptr;// to pass the prefix quote
+	current := runes[ptr];
+
+	if current == '\"' {
+		ptr += 1;
+		current = runes[ptr];
+	} else {
+		return Token{}, 0;
+	}
+
 	for {
-	    current := runes[ptr];
-		if current == '\"' {
-			content := strings.to_string(builder);
-			ptr += 1;
-			return Token{.String, content}, .None;
-		}
-		if current == '\n' {
-			ptr += 1;
-			return Token{.None, nil}, .StringMultiline;
+		
+		if ptr >= len(runes) {
+			return Token{}, 0;
 		}
 
-		if current == '\\' {// escape
+	    current := runes[ptr];
+
+		if current == '\"' {
+			ptr += 1;
+			break;
+		} else if current == '\n' {
+			ptr += 1;
+			return Token{}, 0;
+		} else if current == '\\' {// escape
 			next := runes[ptr + 1];
 			get_escaped := true;
 			if next == 'n' {
 				strings.write_rune(&builder, '\n');
+			} else if next == 'r' {
+				strings.write_rune(&builder, '\r');
 			} else if next == 't' {
 				strings.write_rune(&builder, '\t');
 			} else if next == '\"' {
@@ -133,82 +128,165 @@ token_get_string :: proc(using parser:^Parser, using tctx : ^TokenizeContext) ->
 				get_escaped = false;
 			}
 			if get_escaped { ptr += 2; }
-		}
-
-		strings.write_rune(&builder, current);
-		ptr += 1;
-		if ptr > rune_len {
-			return Token{.None, nil}, .StringError;
+		} else {
+			strings.write_rune(&builder, current);
+			ptr += 1;
 		}
 	}
-	return Token{.None, nil}, .StringError;
+    
+	return Token{.String, strings.to_string(builder)}, ptr - runeptr;
 }
 
 @(private="file")// TODO(Dove): `get_number` can only parse integer for now, add float
-token_get_number :: proc(using parser:^Parser, using tctx : ^TokenizeContext) -> (Token, TokenError)  {
+token_get_number :: proc(using parser:^Parser, runeptr : int) -> (Token, int)  {
 	builder := strings.builder_make(context.temp_allocator);
+	ptr := runeptr;
+	current := runes[ptr];
 
 	negative := false;
-	if runes[ptr] == '-' {
+	need_a_number := true;
+
+	if current == '-' {
 		negative = true;
 		ptr += 1;
+		if ptr >= len(runes) { return Token{}, 0; }
+		current += runes[ptr];
 	}
 	
 	point := false;
 	for {
-		if ptr >= len(runes) { break; }
-	    current := runes[ptr];
-		if rune_is_number(current) {
-			strings.write_rune(&builder, current);
-			ptr += 1;
-		} else if current == '.' {
-			if !point {
-				point = true
+		if ptr >= len(runes) {
+			if need_a_number { return Token{}, 0 }
+			else { break; }
+		}
+		current = runes[ptr];
+        if need_a_number {
+			if !point && current == '.' {
+				strings.write_string(&builder, "0.");
+				point = true;
+				ptr += 1;
+			} else if rune_is_number(current) {
 				strings.write_rune(&builder, current);
+				need_a_number = false;
 				ptr += 1;
 			} else {
-				return Token{.None, nil}, .NumberError;
+				return Token{}, 0;
 			}
 		} else {
-			break;
+			if rune_is_number(current) {
+				strings.write_rune(&builder, current);
+				ptr += 1;
+			} else if current == '.' {
+				strings.write_rune(&builder, '.');
+				point = true;
+				ptr += 1;
+			} else {
+				break;
+			}
 		}
 	}
+
 	value := strconv.atof(strings.to_string(builder));
 	if negative { value *= -1; }
-	return Token{.Number, value}, .None;
+	return Token{.Number, value}, ptr - runeptr;
 }
 
 @(private="file")
-token_consume_space :: proc(using parser : ^Parser, using tctx : ^TokenizeContext) -> i32 {
+token_get_symbol :: proc(using parser:^Parser, runeptr : int) -> (Token, int) {
+	builder := strings.builder_make(context.temp_allocator);
+	ptr := runeptr;
+	current := runes[ptr];
+
+	// Special single-letter symbol.
+	if strings.contains_rune("+-*/%", current) != -1 {
+		if ptr + 1 > len(runes)  { return Token{.Symbol, rune_to_string(current)}, 0; }
+		if runes[ptr + 1] == ' ' { return Token{.Symbol, rune_to_string(current)}, 0; }
+	}
+
+	need_a_letter : bool = true;
+
+	if current == '#' || rune_is_letter(current) {
+		if current != '#' { need_a_letter = false; }
+		need_a_letter = current == '#';
+		strings.write_rune(&builder, current);
+		ptr += 1;
+		current = runes[ptr];
+	}
+
+	for {
+		if ptr >= len(runes) {
+			if need_a_letter { return Token{}, 0; }
+			else {break;}
+		}
+		current = runes[ptr];
+		is_letter := rune_is_letter(current);
+
+		if need_a_letter {
+			need_a_letter = false;
+			if !is_letter { return Token{}, 0; }
+			ptr += 1;
+			strings.write_rune(&builder, current);
+		} else {
+		    if rune_is_letter(current) || rune_is_number(current) || strings.contains_rune("-_/", current) != -1 {
+				ptr += 1;
+				strings.write_rune(&builder, current);
+			} else {
+			    break;
+			}
+		}
+	}
+
+	consumed := ptr - runeptr;
+	return Token{.Symbol, strings.to_string(builder)}, consumed;
+}
+
+@(private="file")
+token_consume_space :: proc(using parser : ^Parser, runeptr : int) -> int {
 	length := len(runes);
-	consumed :i32= 0;
+	consumed :int= 0;
+	ptr := runeptr;
 	for ptr < length && strings.is_ascii_space(runes[ptr]) {
 		ptr += 1;
 		consumed += 1;
 	}
-	if ptr < length {
-	    return consumed;
-	} else {
-	    return -1;
-	}
+
+	return consumed;
 }
-
-
 @(private="file")
-rune_is_valid_in_symbol :: proc(r : rune, is_first := false) -> bool {
-	if (r <= 'z' && r >= 'a') || (r <= 'Z' && r >= 'A') {
-		return true;
+token_consume_comment :: proc(using parser : ^Parser, runeptr : int) -> int {
+	length := len(runes);
+    consume :int= 0;
+	if runeptr >= length { return 0; }
+	if runes[runeptr] != ';' {return 0;}
+
+	for r in runes[runeptr:] {
+		consume += 1;
+		if r == '\n' || r == '\r' {
+			break;
+		}
 	}
-	if !is_first {
-		return r == '-' || r == '_' || r == '/' || (r <= '9' && r >= '0');
-	}
-	return false;
+
+	return consume;
 }
+
 
 @(private="file")
 rune_is_number :: proc(r : rune) -> bool {
     return r <= '9' && r >= '0';
 }
+@(private="file")
+rune_is_letter :: proc(r : rune) -> bool {
+	return (r <= 'z' && r >= 'a') || (r <= 'Z' && r >= 'A');
+}
+
+@(private="file")
+rune_to_string :: proc(r : rune) -> string {
+	sb := strings.builder_make();
+	defer strings.builder_destroy(&sb);
+	strings.write_rune(&sb, r);
+	return strings.to_string(sb);
+}
+
 
 
 Token :: struct {
