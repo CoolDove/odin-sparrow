@@ -25,6 +25,24 @@ builtin_mul :: proc(args : []Object, env: ^Environment) -> Object {
 	return Object{.Number, result};
 }
 
+// (item index list)
+builtin_item :: proc(args : []Object, env: ^Environment) -> Object {
+    index, ok_index := env_resolve(env, "index");
+    list,  ok_list  := env_resolve(env, "list");
+
+	assert(ok_index && ok_list, "Invalid arguments, should be (index: Number, list: List)");
+	assert(index.type == .Number && list.type == .List, "Invalid arguments, should be (index: Number, list: List)");
+
+	data := list.value.(List).data;
+	ind := cast(int)index.value.(f64);
+
+	if ind < len(data) {
+	    return obj_copy(data[ind]);
+	} else {
+	    return Object{};
+	}
+}
+
 // @Temporary: To test named args.
 builtin_two_add :: proc(args : []Object, env: ^Environment) -> Object {
     a, ok0 := env_resolve(env, "a");

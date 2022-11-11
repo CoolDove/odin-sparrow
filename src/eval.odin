@@ -67,9 +67,9 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		// NOTE(Dove): Function Calling Environment
 		// `function.env` is the env where the function is defined.
 		// Create a new environment for the function's inner calculation.
-
 		// `function.env == nil` means it's a built-in function
-		parent_env := function.type == .BuiltIn ? env : function.env;
+		// parent_env := function.type == .BuiltIn ? env : function.env;
+		parent_env := function.env;
 		funcenv := env_make(parent_env);
 		defer env_destroy(funcenv);
 		va_args := pass_args_into_environment(funcenv, args[:], function.params[:]);

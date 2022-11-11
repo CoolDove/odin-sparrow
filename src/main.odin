@@ -54,13 +54,18 @@ sparrow :: proc() {
 
 test_source :: `
 (begin
-    (def PI 3.14159)
-    (def circle-area (radius)
-        (mul PI radius radius)
+    ;; (def PI 3.14159)
+    ;; (def circle-area (radius)
+        ;; (mul PI radius radius)
+    ;; )
+    ;; (def diameter 4)
+    ;; (circle-area (mul diameter .5))
+
+    (def test (#va_args)
+        (item 1 #va_args)
     )
-    (def diameter 4)
-    (circle-area (mul diameter 0.5))
-    ;; (test-va-args 13 "hello world" 15 16)
+
+    (test 1 2 3 4)
 )
 `
 
