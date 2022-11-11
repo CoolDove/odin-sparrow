@@ -9,19 +9,22 @@ import "core:unicode/utf8"
 // @Program
 SparrowProgram :: struct {
     global : ^Environment,
+	trees  : [dynamic]^AST
 }
 
 // Global program object.
-program : SparrowProgram;
+program : ^SparrowProgram;
 
-prog_init_program :: proc(allocator := context.allocator) {
-	using program;
+prog_init_program :: proc(allocator := context.allocator) -> ^SparrowProgram {
+	context.allocator = allocator;
+	prog := new(SparrowProgram);
+	using prog;
     global = env_make(nil, allocator);
 
     // Register built-in functions.
-	reg_function("add", builtin_add, "#va_args");
-	reg_function("mul", builtin_mul, "#va_args");
-	reg_function("two-add", builtin_two_add, "a", "b");
+	prog_reg_function(prog, "add", builtin_add, "#va_args");
+	prog_reg_function(prog, "mul", builtin_mul, "#va_args");
+	prog_reg_function(prog, "two-add", builtin_two_add, "a", "b");
 
 	// reg_function("sub", builtin_sub);
 	// reg_function("div", builtin_div);
@@ -31,23 +34,28 @@ prog_init_program :: proc(allocator := context.allocator) {
 	// reg_function("defun", builtin_defun);
 
 	// reg_function("print", builtin_print);
+	return prog;
 }
-prog_release_program :: proc() {
+prog_release_program :: proc(using prog : ^SparrowProgram) {
 	env_destroy(program.global);
+	for tree in trees {
+		ast_destroy(tree);
+	}
+	free(prog);
 }
 
-reg_function_default :: proc(name: string, body : Object, env: ^Environment, params : ..string) {
-	// TODO(Dove): reg_function_default
-	// using program;
-	// function := new(Function);
-	// function.type = .Default;
-	// function.data = proc_node;
-	// append(&functions, function);
-	// symbols[name] = build_object(.Function, function);
+prog_eval_source :: proc(source: string, using prog : ^SparrowProgram) -> Object {
+	parser := parser_make(source);
+	defer parser_release(parser);
+	ast := ast_make();
+	parse(parser, ast);
+	append(&trees, ast);
+	return eval_tree(ast.root, program.global);
 }
 
-reg_function_builtin :: proc(name: string, process : BuiltInFunction, params : ..string) {
-	using program;
+// Only register built-in functions.
+prog_reg_function :: proc(prog : ^SparrowProgram, name: string, process : BuiltInFunction, params : ..string) {
+	using prog;
 	func := new(Function);
 	func.type = .BuiltIn;
 	func.params = make_params(params[:]);
@@ -64,9 +72,4 @@ make_params :: proc(names: []string, allocator:= context.allocator) -> [dynamic]
 		append(&params, name);
 	}
 	return params;
-}
-
-reg_function :: proc {
-	reg_function_default,
-	reg_function_builtin,
 }

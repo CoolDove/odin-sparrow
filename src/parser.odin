@@ -10,23 +10,12 @@ Parser :: struct {
 	runes : []rune,
 	tokenized : bool,
 	tokens : [dynamic]Token,
-	_tree_stack     : mem.Stack,
-	// All AST node(Object) and the source runes array are allocated by this,
-	// you can free them all by free this allocator.
-	_tree_allocator : mem.Allocator,
-	_allocated_by   : mem.Allocator
+	_allocated_by   : mem.Allocator// Stores the source runes, and the tokens.
 }
 
 // NOTE(Dove): not used.
-ParseContext :: struct {
-	ptr : int // token index
-}
-
-AST :: struct {
-	root : ^Object,
-	_tree_stack : mem.Stack,
-	_allocator  : mem.Allocator
-}
+// using ast : ^AST,
+// using parser : ^Parser,
 
 parser_make :: proc(source:string, allocator := context.allocator) -> ^Parser {
 	p := new(Parser, allocator);
@@ -35,15 +24,10 @@ parser_make :: proc(source:string, allocator := context.allocator) -> ^Parser {
 		runes = utf8.string_to_runes(test_source, allocator);
 		tokens = make([dynamic]Token, allocator);
 		_allocated_by = allocator;
-		buffer, err := mem.alloc_bytes(10240);
-		if err != .None {
-			fmt.println("Error while making parser, failed to allocate memory for the parser.");
-			return nil;
-		}
-	    mem.stack_init(&_tree_stack, buffer);
-
-		_tree_allocator = mem.stack_allocator(&_tree_stack);
 	}
+	// TODO(Dove): Tokenize here.
+	err := tokenize(p);
+	if err == .None { p.tokenized = true; }
 	return p;
 }
 parser_release :: proc(using parser:^Parser) {
@@ -51,30 +35,32 @@ parser_release :: proc(using parser:^Parser) {
 	delete(tokens);
 	delete(runes);
 
-	delete(_tree_stack.data);
+	// delete(_tree_stack.data);
 	free(parser);
 }
 
-parse :: proc(using parser : ^Parser) -> (Object, ParseResult) {
-	err := tokenize(parser);
-	if err == .None {
+parse :: proc(using parser : ^Parser, using ast : ^AST) -> ParseResult {
+	if tokenized {
 		// tree : Object;
 		// consumed : int;
-		tree, consumed := parse_list(parser, 0);
+		tree, consumed := parse_list(parser, ast, 0);
 		if consumed == 0 {
-			return Object{}, ParseResult{.Bad, "failed to parse"};
+			ast.root = Object{};
+			return ParseResult{.Bad, "failed to parse"};
 		} else {
-	        return tree, ParseResult{.Good, "parse succ"};
+			ast.root = tree;
+	        return ParseResult{.Good, "parse succ"};
 		}
 	}
-	return Object{}, ParseResult{.Bad, "failed to tokenize"};
+	ast.root = Object{};
+	return ParseResult{.Bad, "failed to tokenize"};
 }
 
 // NOTE:
 // `parse_` prefixed functions take a tokptr to fetch token from the parser.
 // The return value is consumed tokens count, should be added to tokptr.
 // Returning 0 means parsing failed.
-parse_list :: proc(using parser : ^Parser, tokptr : int) -> (Object, int) {
+parse_list :: proc(using parser : ^Parser, using ast : ^AST, tokptr : int) -> (Object, int) {
 	tptr := tokptr;
 	tok  := tokens[tptr];
 
@@ -92,9 +78,9 @@ parse_list :: proc(using parser : ^Parser, tokptr : int) -> (Object, int) {
 		consumed : int    = ---;
 
 		if tok.type == .LParen {
-			node, consumed = parse_list(parser, tptr);
+			node, consumed = parse_list(parser, ast, tptr);
 		} else {
-			node, consumed = parse_value(parser, tptr);
+			node, consumed = parse_value(parser, ast, tptr);
 		}
 
 		if consumed != 0 {// append to metalist root
@@ -124,7 +110,7 @@ parse_list :: proc(using parser : ^Parser, tokptr : int) -> (Object, int) {
 }
 
 // NOTE(Dove): number or string, or symbol
-parse_value :: proc(using parser : ^Parser, tokptr : int) -> (Object, int) {
+parse_value :: proc(using parser : ^Parser, using ast : ^AST, tokptr : int) -> (Object, int) {
 	tok := tokens[tokptr];
 	obj :Object= ---;
 	good := false;

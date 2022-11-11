@@ -44,11 +44,11 @@
 
 - [x] Code Clean & Restructure.
 - [x] Function destroying.
+- [x] Add AST struct.
 - [ ] Interact mode
 - [ ] Polish tokenizer and parser.
 	- [ ] Take #-prefixed symbol as builtin symbol, like #va_args, #number, #string, #nil, #symbol
 	- [ ] Tokenize `*+-/<>` as symbols.
 - [ ] Flow Control(if, for...).
-- [ ] Add AST struct.
 - [ ] String Operations.
 - [ ] Error Object.

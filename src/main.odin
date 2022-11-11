@@ -17,34 +17,17 @@ print_label :: proc(label : string) {
 }
 
 sparrow :: proc() {
-	defer fmt.println("PROGRAM END");
+	defer fmt.println("==PROGRAM END==");
 
-	prog_init_program();
-	defer prog_release_program();
+	program = prog_init_program();
+	defer prog_release_program(program);
 
 	print_label("Source");
 	fmt.println(test_source);
 
-	parser := parser_make(test_source);
-	defer parser_release(parser);
+	base := prog_eval_source(test_source, program);
 
-	tokenize(parser);
-
-	// print_label("Tokens");
-	// show_tokens(parser);
-
-	print_label("Abstract Syntax Tree");
-	tree, parse_result := parse(parser);
-	if parse_result.type == .Good {
-	    show_tree(&tree);
-	} else {
-		fmt.println("failed to parse");
-		return;
-	}
-
-	print_label("Result");
-	eval_result := eval_tree(tree, program.global);
-	fmt.println(eval_result);
+	fmt.println("base eval: ", base);
 }
 
 test_source :: `
