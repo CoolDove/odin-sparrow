@@ -8,6 +8,7 @@ import "core:unicode/utf8"
 
 eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 	defer obj_destroy(tree);// If protected, cannot destroy.
+
 	#partial switch type {
 	case .List:
 		list := tree.value.(List).data[:];
@@ -74,16 +75,6 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 			body := function.body.(Object);
 			return eval_tree(body, funcenv);
 		}
-		
-		// } else if symbol_name == "list" {
-			// sublist_data := make([dynamic]Object);
-			// for arg in list[1:] {
-				// evaled := eval_tree(arg, env);
-				// append(&sublist_data, evaled);
-			// }
-			// sublist := List{sublist_data, false};
-			// return Object{.List, sublist};
-		// }
 		return Object{.Nil, nil};
 	case .Number:
 		return Object{ .Number, tree.value.(f64) };

@@ -34,7 +34,8 @@ Function :: struct {
 	body : union {
 		Object, BuiltInFunction// The `Object` is usually a list(protected).
 	},
-	env : ^Environment
+	env : ^Environment,
+	protected : bool
 }
 
 FuncType :: enum {
@@ -64,11 +65,30 @@ obj_list_data :: proc(obj: ^Object) -> []Object {
 
 // TODO(Dove): `obj_destroy` is to destroy List/Function object's inner buffer.
 obj_destroy :: proc(obj: Object, force := false) {
-	if obj.type != .List {return;}
-	list := obj.value.(List);
-	if force || !list.protected {
-		delete(list.data);
+	// if obj.type != .List {return;}
+    switch obj.type {
+    case .Nil:      fallthrough
+    case .Number:   fallthrough
+	case .String:   fallthrough
+    case .Symbol:   return;
+	case .Function:
+		function := obj.value.(^Function);
+		if force || !function.protected {
+			delete(function.params);
+			if function.type == .Default {
+				obj_destroy(function.body.(Object), true);
+			}
+		}
+	case .List:// Recursively destroy a list.
+		list := obj.value.(List);
+		if force || !list.protected {
+			for obj in list.data {
+				obj_destroy(obj, true);
+			}
+			delete(list.data);
+		}
 	}
+	
 }
 
 // NOTE(Dove): `obj_copy` is to copy the List/Function type object. Its inner buffer should be copied.

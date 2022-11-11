@@ -9,8 +9,8 @@ import "core:unicode/utf8"
 builtin_add :: proc(args : []Object, env: ^Environment) -> Object {
 	result : f64 = 0;
 	for arg in args {
-		// assert(arg.type == .Number, fmt.tprintf("Invalid argument: {}", arg));
-		value := eval_tree(arg, env);
+		assert(arg.type == .Number, fmt.tprintf("Invalid argument: {}", arg));
+		value := arg;
 		result += value.value.(f64);
 	}
 	
@@ -19,9 +19,8 @@ builtin_add :: proc(args : []Object, env: ^Environment) -> Object {
 builtin_mul :: proc(args : []Object, env: ^Environment) -> Object {
 	result :f64= 1;
 	for arg in args {
-		evaled := eval_tree(arg, env);
-		assert(evaled.type == .Number, fmt.tprintf("Arg should be Number, is: {}\n", evaled.type));
-		result *= evaled.value.(f64);
+		assert(arg.type == .Number, fmt.tprintf("Arg should be Number, is: {}\n", arg.type));
+		result *= arg.value.(f64);
 	}
 	return Object{.Number, result};
 }
