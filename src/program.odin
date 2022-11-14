@@ -21,11 +21,19 @@ prog_init_program :: proc(allocator := context.allocator) -> ^SparrowProgram {
 	using prog;
     global = env_make(nil, allocator);
 
+	// # Math
     // Register built-in functions.
 	prog_reg_function(prog, "add", builtin_add, "#va_args");
 	prog_reg_function(prog, "mul", builtin_mul, "#va_args");
-	prog_reg_function(prog, "two-add", builtin_two_add, "a", "b");
+	// prog_reg_function(prog, "two-add", builtin_two_add, "a", "b");
 
+
+
+	// # Comparison
+	prog_reg_function(prog, "equal", builtin_equal, "left", "right");
+
+
+	// # List
     prog_reg_function(prog, "item", builtin_item, "index", "list");
 	// prog_reg_function(prog, "test-va-args", builtin_test_va_args, "#va_args");
 

@@ -6,6 +6,8 @@ import "core:strings"
 import "core:mem"
 import "core:unicode/utf8"
 
+
+// # Math
 builtin_add :: proc(args : []Object, env: ^Environment) -> Object {
 	result : f64 = 0;
 	for arg in args {
@@ -25,6 +27,24 @@ builtin_mul :: proc(args : []Object, env: ^Environment) -> Object {
 	return Object{.Number, result};
 }
 
+
+// # Comparison
+builtin_equal :: proc(args : []Object, env: ^Environment) -> Object {
+	left  := env_resolve(env, "left");
+	right := env_resolve(env, "right");
+
+	if left.type != right.type { return Object{.Boolean, false}; }
+
+    if left.type == .Number {
+		return Object{.Boolean, left.value.(f64) == right.value.(f64)};
+	} else if left.type == .String {
+		return Object{.Boolean, left.value.(string) == right.value.(string)};
+	}
+
+	return Object{.Boolean, false};
+}
+
+// # List
 // (item index list)
 builtin_item :: proc(args : []Object, env: ^Environment) -> Object {
     index, ok_index := env_resolve(env, "index");
