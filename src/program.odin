@@ -27,11 +27,8 @@ prog_init_program :: proc(allocator := context.allocator) -> ^SparrowProgram {
 	prog_reg_function(prog, "mul", builtin_mul, "#va_args");
 	// prog_reg_function(prog, "two-add", builtin_two_add, "a", "b");
 
-
-
 	// # Comparison
 	prog_reg_function(prog, "equal", builtin_equal, "left", "right");
-
 
 	// # List
     prog_reg_function(prog, "item", builtin_item, "index", "list");

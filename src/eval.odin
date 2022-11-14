@@ -15,9 +15,9 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
         assert(list[0].type == .Symbol, "Invalid symbol.")
 
 		symbol_name := list[0].value.(string);
+		args_len := len(list[1:]);
 
         if symbol_name == "def" {
-			args_len := len(list[1:]);
 			if args_len == 2 {
 				return define_variable(env, list[1:]);
 			} else if args_len == 3 {
@@ -40,8 +40,31 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 				result = eval_tree(prog, env);
 			}
 			return result;
+		} else if symbol_name == "if" {
+			if args_len > 0 {
+			    condition := eval_tree(list[1], env);
+                if args_len > 1 {
+					condition_result := true;
+                    if (condition.type == .Boolean && !condition.value.(bool)) ||
+						condition.type == .Nil {
+						condition_result = false;
+					}
+					if condition_result {
+						return eval_tree(list[2], env);
+					} else {
+						if args_len > 2 {
+						    return eval_tree(list[3], env);
+						} else {
+							return Object{};
+						}
+					}
+				} else {
+					return condition;
+				}
+			} else {
+				return Object{};
+			}
 		}
-
 		function_symbol, ok := env_resolve(env, symbol_name);
 
 		if !ok {

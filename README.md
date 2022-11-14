@@ -54,9 +54,12 @@
 	- [x] Take #-prefixed symbol as builtin symbol, like #va_args, #number, #string, #nil, #symbol
 	- [x] Tokenize `*+-/<>` as symbols.
 - [ ] Flow Control(if, while...), bool type.
+    - [x] boolean
+    - [x] if
+    - [ ] while
 - [ ] Syntax sugar (switch, for...).
-- [ ] String Operations.
-- [ ] List Operations.
+- [ ] More String Operations.(length, concat...)
+- [ ] More List Operations.(length, item, concat...)
 - [ ] Error Object.
 - [ ] Command line execution.
 - [ ] System args
