@@ -12,12 +12,13 @@ Object :: struct {
 }
 
 ObjectType :: enum {
-	Nil, Number, String, Symbol, Function, List// , ErrorMsg
+	Nil, Number, String, Boolean, Symbol, Function, List// , ErrorMsg
 }
 ObjectValue :: union #align 4 {
 	f64,        // Number
 	string,     // String / SymbolName
 	^Function,
+	bool,
 	List
 }
 
@@ -68,6 +69,7 @@ obj_destroy :: proc(obj: Object, force := false) {
 	// if obj.type != .List {return;}
     switch obj.type {
     case .Nil:      fallthrough
+    case .Boolean:      fallthrough
     case .Number:   fallthrough
 	case .String:   fallthrough
     case .Symbol:   return;
@@ -96,6 +98,7 @@ obj_copy :: proc(obj: Object, copy_as_protected := false, allocator := context.a
 	// assert(false, "Not Implemented");
 	switch obj.type {
     case .Nil:      fallthrough
+    case .Boolean:   fallthrough
     case .Number:   fallthrough
 	case .String:   fallthrough
     case .Symbol:   fallthrough

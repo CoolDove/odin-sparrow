@@ -45,28 +45,27 @@
 - [ ] Destroy object in the symbol map when it was redefined to another value.
 
 ## TODO
-
 - [x] Code Clean & Restructure.
 - [x] Function destroying.
 - [x] Add AST struct.
 - [x] Interact mode
-- [ ] va_args
-- [ ] Polish tokenizer and parser.
-	- [ ] Take #-prefixed symbol as builtin symbol, like #va_args, #number, #string, #nil, #symbol
-	- [ ] Tokenize `*+-/<>` as symbols.
-- [ ] Flow Control(if, for...).
+- [x] va_args
+- [x] Polish tokenizer and parser.
+	- [x] Take #-prefixed symbol as builtin symbol, like #va_args, #number, #string, #nil, #symbol
+	- [x] Tokenize `*+-/<>` as symbols.
+- [ ] Flow Control(if, while...), bool type.
+- [ ] Syntax sugar (switch, for...).
 - [ ] String Operations.
+- [ ] List Operations.
 - [ ] Error Object.
+- [ ] Command line execution.
+- [ ] System args
 
-
-
-### Symbol rule
 
 ## special 
     +-*/
 
 ## basic
-    LettersOrNumber1024
 
 ## seperator
     Can use "-_/" as seperators. But cannot used as the first rune.

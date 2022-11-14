@@ -65,9 +65,14 @@ tokenize :: proc(using parser : ^Parser) -> TokenError {
 				if local_consumed != 0 {
 					succ = true;
 				} else {
-					tok, local_consumed = token_get_symbol(parser, ptr);
+					tok, local_consumed = token_get_boolean(parser, ptr);
 				    if local_consumed != 0 {
 						succ = true;
+					} else {
+						tok, local_consumed = token_get_symbol(parser, ptr);
+						if local_consumed != 0 {
+							succ = true;
+						}
 					}
 				}
 			}
@@ -198,7 +203,7 @@ token_get_symbol :: proc(using parser:^Parser, runeptr : int) -> (Token, int) {
 	current := runes[ptr];
 
 	// Special single-letter symbol.
-	if strings.contains_rune("+-*/%", current) != -1 {
+	if strings.contains_rune("+-*/%><", current) != -1 {
 		if ptr + 1 > len(runes)  { return Token{.Symbol, rune_to_string(current)}, 0; }
 		if runes[ptr + 1] == ' ' { return Token{.Symbol, rune_to_string(current)}, 0; }
 	}
@@ -238,6 +243,23 @@ token_get_symbol :: proc(using parser:^Parser, runeptr : int) -> (Token, int) {
 
 	consumed := ptr - runeptr;
 	return Token{.Symbol, strings.to_string(builder)}, consumed;
+}
+
+@(private="file")
+token_get_boolean :: proc(using parser:^Parser, runeptr : int) -> (Token, int) {
+	length := len(runes);
+	if length - runeptr >= 4 && runes[runeptr] == 't' {
+		if runes[runeptr + 1] == 'r' && runes[runeptr + 2] == 'u' && runes[runeptr + 3] == 'e' {
+		    return Token{.Boolean, true}, 4;
+		}
+	}
+	if length - runeptr >= 5 && runes[runeptr] == 'f' {
+		if runes[runeptr + 1] == 'a' && runes[runeptr + 2] == 'l' && runes[runeptr + 3] == 's' && runes[runeptr + 4] == 'e' {
+		    return Token{.Boolean, false}, 5;
+		}
+	}
+
+	return Token{}, 0;
 }
 
 @(private="file")
@@ -303,12 +325,13 @@ TokenType :: enum {
 	Comma,
 	Number,
 	Symbol,
-	String
+	String,
+	Boolean
 }
 
 // currently use a string to store variable/function name (for `Symbol` type)
 TokenValue :: union {
-	f64, string 
+	f64, string, bool
 }
 
 TokenError :: enum {

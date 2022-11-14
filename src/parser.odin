@@ -132,6 +132,8 @@ parse_value :: proc(using parser : ^Parser, using ast : ^AST, tokptr : int) -> (
 	good := false;
 	
     #partial switch tok.type {
+	case .Boolean:
+		return Object{.Boolean, tok.value.(bool)}, 1;
 	case .Number:
 		return Object{.Number, tok.value.(f64)}, 1;
 	case .String:

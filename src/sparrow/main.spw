@@ -9,3 +9,16 @@
 
     (module "core")
 )
+
+
+: sparrow build.spw DEBUG
+: sparrow build.spw
+
+
+(prog
+    (def cfg (item 1 #sys_args))
+
+    (def cfg-tag (if (equal cfg "DEBUG") "-debug" ""))
+	
+    (cmd (concat "odin build ./src/ " cfg-tag "-out:bin/debug/sparrow.exe")
+)

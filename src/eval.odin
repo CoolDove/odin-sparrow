@@ -85,6 +85,8 @@ eval_tree :: proc(using tree : Object, env : ^Environment) -> Object {
 		return Object{.Nil, nil};
 	case .Number:
 		return Object{ .Number, tree.value.(f64) };
+	case .Boolean:
+		return Object{ .Boolean, tree.value.(bool) };
 	case .Symbol:
 		symbol, ok := env_resolve(env, tree.value.(string));
 		if ok { return symbol; }
