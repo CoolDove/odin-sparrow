@@ -58,9 +58,11 @@
     - [x] if
     - [ ] while
 - [ ] Syntax sugar (switch, for...).
+- [ ] Error Object.
 - [ ] More String Operations.(length, concat...)
 - [ ] More List Operations.(length, item, concat...)
-- [ ] Error Object.
+- [ ] Initial load
+- [ ] IO lib
 - [ ] Command line execution.
 - [ ] System args
 
